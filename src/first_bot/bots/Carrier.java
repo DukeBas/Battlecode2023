@@ -84,9 +84,9 @@ public class Carrier extends Robot{
 
     public void pathfind_to_nearest_well() throws GameActionException{
         // Find closest well
-        MapLocation goal_Location = rc.getLocation();
+        MapLocation goal_Location = null;
         WellInfo[] wells = rc.senseNearbyWells();
-            int min_dist = Integer.MAX_VALUE;
+            int min_dist = Integer.MIN_VALUE;
             if (wells.length != 0) {
                 for (WellInfo well : wells) {
                     int dist_to_well = well.getMapLocation().distanceSquaredTo(rc.getLocation());
@@ -94,7 +94,9 @@ public class Carrier extends Robot{
                         min_dist = dist_to_well;
                         goal_Location = well.getMapLocation();
                     }
-                    move_towards(goal_Location);
+                    if (goal_Location != null) {
+                        move_towards(goal_Location);
+                    }
                 }
                 // do navigation
             } else {
