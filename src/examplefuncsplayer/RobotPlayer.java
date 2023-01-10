@@ -157,7 +157,7 @@ public strictfp class RobotPlayer {
                     }
                 }
                 if (rc.canPlaceAnchor()) {
-                    rc.setIndicatorString("Huzzah, placed anchor!");
+                    rc.setIndicatorString("Huzzah, placed g!");
                     rc.placeAnchor();
                 }
             }
