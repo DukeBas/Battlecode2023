@@ -6,6 +6,7 @@ import first_bot.util.Constants;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
+import first_bot.util.SimplePathing;
 
 import static first_bot.util.Constants.directions;
 
@@ -67,13 +68,24 @@ public class Carrier extends Robot{
                 }
             }
         }
-        MapLocation goal_Location;
+        
         if (get_resource_count() == MAX_RESOURCES) {
             // Resources full, Pathfind to HQ
-            goal_Location = built_by;
+            move_towards(built_by);
         } else {
             // Resources not full, Pathfind to well
-            WellInfo[] wells = rc.senseNearbyWells();
+            pathfind_to_nearest_well();
+        }
+    }
+
+    public int get_resource_count() {
+        return rc.getResourceAmount(ResourceType.ADAMANTIUM) + rc.getResourceAmount(ResourceType.MANA) + rc.getResourceAmount(ResourceType.ELIXIR);
+    }
+
+    public void pathfind_to_nearest_well() throws GameActionException{
+        // Find closest well
+        MapLocation goal_Location = rc.getLocation();
+        WellInfo[] wells = rc.senseNearbyWells();
             int min_dist = Integer.MAX_VALUE;
             if (wells.length != 0) {
                 for (WellInfo well : wells) {
@@ -82,25 +94,16 @@ public class Carrier extends Robot{
                         min_dist = dist_to_well;
                         goal_Location = well.getMapLocation();
                     }
+                    move_towards(goal_Location);
                 }
+                // do navigation
             } else {
+                // No nearby wells
                 rc.setIndicatorString("I dont see any wells :(");
                 // Also try to move randomly.
                 // TODO: FIX ME PLEASE :)
                 Direction dir = directions[rng.nextInt(directions.length)];
-                if (rc.canMove(dir)) {
-                    rc.move(dir);
-                }
+                move_towards(dir);
             }
-        }
-        // Also try to move randomly.
-        Direction dir = directions[rng.nextInt(directions.length)];
-        if (rc.canMove(dir)) {
-            rc.move(dir);
-        }
-    }
-
-    public int get_resource_count(){
-        return rc.getResourceAmount(ResourceType.ADAMANTIUM) + rc.getResourceAmount(ResourceType.MANA) + rc.getResourceAmount(ResourceType.ELIXIR);
     }
 }
