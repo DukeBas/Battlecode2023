@@ -33,7 +33,11 @@ public abstract class Robot {
         this.friendly = rc.getTeam();
         this.enemy = friendly.opponent();
         // TODO: navigate to the closest spot around HQ instead of spot where built
-        this.built_by = rc.getLocation();
+        try {
+            this.built_by = getHQ();
+        } catch (Exception e) {
+            System.out.println(e);
+        }
         pathfinding = new SimplePathing(rc);
     }
 
@@ -106,5 +110,16 @@ public abstract class Robot {
         } else {
             rc.setIndicatorString("oopsy doopsy, i cannot move " + direction.toString() + " there :(");
         }
+    }
+
+    private MapLocation getHQ() throws GameActionException{
+        RobotInfo friendlies[] = rc.senseNearbyRobots(2, friendly);
+        MapLocation HQ = null;
+        for (RobotInfo robot : friendlies) {
+            if (robot.type == RobotType.HEADQUARTERS) {
+                HQ = robot.getLocation();
+            }
+        }
+        return HQ;
     }
 }

@@ -51,9 +51,18 @@ public class Carrier extends Robot{
                 }
             }
         }
+
         if (get_resource_count() == MAX_RESOURCES) {
             // Resources full, Pathfind to HQ
-            move_towards(built_by);
+            if (rc.canTransferResource(built_by, ResourceType.ADAMANTIUM, 1)) {
+                rc.transferResource(built_by, ResourceType.ADAMANTIUM, rc.getResourceAmount(ResourceType.ADAMANTIUM));
+            } else if (rc.canTransferResource(built_by, ResourceType.MANA, 1)) {
+                rc.transferResource(built_by, ResourceType.MANA, rc.getResourceAmount(ResourceType.MANA));
+            } else if (rc.canTransferResource(built_by, ResourceType.ELIXIR, 1)) {
+                rc.transferResource(built_by, ResourceType.ELIXIR, rc.getResourceAmount(ResourceType.ELIXIR));
+            } else {
+                move_towards(built_by);
+            }
         } else {
             // Resources not full, Pathfind to well
             MapLocation nearest_well = get_nearest_well();
@@ -62,7 +71,7 @@ public class Carrier extends Robot{
                 Direction dir = directions[rng.nextInt(directions.length)];
                 move_towards(dir);
             } else {
-                if (rc.canCollectResource(nearest_well, -1)) {
+                if (rc.canCollectResource(nearest_well, 1)) {
                     rc.collectResource(nearest_well, -1);
                 } else {
                     move_towards(nearest_well);
@@ -79,7 +88,7 @@ public class Carrier extends Robot{
         // Find closest well
         MapLocation nearest_well = null;
         WellInfo[] wells = rc.senseNearbyWells();
-            int min_dist = Integer.MIN_VALUE;
+            int min_dist = Integer.MAX_VALUE;
             if (wells.length != 0) {
                 for (WellInfo well : wells) {
                     int dist_to_well = well.getMapLocation().distanceSquaredTo(rc.getLocation());
