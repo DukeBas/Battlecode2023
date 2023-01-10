@@ -1,12 +1,14 @@
 package first_bot.bots;
 
 import battlecode.common.*;
-import first_bot.util.Constants;
 import static first_bot.util.Constants.directions;
 
 public class HQ extends Robot{
+    MapLocation ownLocation;
+
     public HQ(RobotController rc) {
         super(rc);
+        ownLocation = rc.getLocation();
     }
 
     /**
@@ -16,28 +18,40 @@ public class HQ extends Robot{
      */
     @Override
     void run() throws GameActionException {
-// Pick a direction to build in.
-        Direction dir = directions[rng.nextInt(directions.length)];
-        MapLocation newLoc = rc.getLocation().add(dir);
         if (rc.canBuildAnchor(Anchor.STANDARD)) {
             // If we can build an anchor do it!
             rc.buildAnchor(Anchor.STANDARD);
             rc.setIndicatorString("Building anchor! " + rc.getAnchor());
         }
-        if (rng.nextBoolean()) {
-            // Let's try to build a carrier.
-            rc.setIndicatorString("Trying to build a carrier");
-            if (rc.canBuildRobot(RobotType.CARRIER, newLoc)) {
-                rc.buildRobot(RobotType.CARRIER, newLoc);
-            }
-        } else {
-            // Let's try to build a launcher.
-            rc.setIndicatorString("Trying to build a launcher");
-            if (rc.canBuildRobot(RobotType.LAUNCHER, newLoc)) {
-                rc.buildRobot(RobotType.LAUNCHER, newLoc);
-            }
-        }
+
+
+        // Let's try to build a carrier.
+        tryToBuild(RobotType.CARRIER);
+        // Let's try to build a launcher.
+        tryToBuild(RobotType.LAUNCHER);
     }
 
+    public void tryToBuild(RobotType type) throws GameActionException {
+        // Try all directions to find one to build in
+        Direction dir = null;
+        for (Direction d : directions) {
+            MapLocation loc = ownLocation.add(d);
+            if (!rc.isLocationOccupied(loc) && rc.sensePassability(loc)){
+                // we can build on this spot!
+                dir = d;
+                break;
+            }
+        }
 
+        // Check if we have a valid spot to build in
+        if (dir == null) {
+            return;
+        }
+        MapLocation buildLocation = rc.getLocation().add(dir);
+
+        rc.setIndicatorString("Trying to build a " + type.toString());
+        if (rc.canBuildRobot(type, buildLocation)) {
+            rc.buildRobot(type, buildLocation);
+        }
+    }
 }
