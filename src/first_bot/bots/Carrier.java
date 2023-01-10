@@ -10,6 +10,9 @@ import java.util.Set;
 import static first_bot.util.Constants.directions;
 
 public class Carrier extends Robot{
+
+    static int MAX_RESOURCES = 40;
+
     public Carrier(RobotController rc) {
         super(rc);
     }
@@ -53,7 +56,8 @@ public class Carrier extends Robot{
             for (int dy = -1; dy <= 1; dy++) {
                 MapLocation wellLocation = new MapLocation(me.x + dx, me.y + dy);
                 if (rc.canCollectResource(wellLocation, -1)) {
-                    if (rng.nextBoolean()) {
+                    // Do not attempt to collect resources if full
+                    if (get_resource_count() >= MAX_RESOURCES) {
                         rc.collectResource(wellLocation, -1);
                         rc.setIndicatorString("Collecting, now have, AD:" +
                                 rc.getResourceAmount(ResourceType.ADAMANTIUM) +
@@ -63,18 +67,40 @@ public class Carrier extends Robot{
                 }
             }
         }
-        // If we can see a well, move towards it
-        WellInfo[] wells = rc.senseNearbyWells();
-        if (wells.length > 1 && rng.nextInt(3) == 1) {
-            WellInfo well_one = wells[1];
-            Direction dir = me.directionTo(well_one.getMapLocation());
-            if (rc.canMove(dir))
-                rc.move(dir);
+        MapLocation goal_Location;
+        if (get_resource_count() == MAX_RESOURCES) {
+            // Resources full, Pathfind to HQ
+            goal_Location = built_by;
+        } else {
+            // Resources not full, Pathfind to well
+            WellInfo[] wells = rc.senseNearbyWells();
+            int min_dist = Integer.MAX_VALUE;
+            if (wells.length != 0) {
+                for (WellInfo well : wells) {
+                    int dist_to_well = well.getMapLocation().distanceSquaredTo(rc.getLocation());
+                    if (dist_to_well <= min_dist) {
+                        min_dist = dist_to_well;
+                        goal_Location = well.getMapLocation();
+                    }
+                }
+            } else {
+                rc.setIndicatorString("I dont see any wells :(");
+                // Also try to move randomly.
+                // TODO: FIX ME PLEASE :)
+                Direction dir = directions[rng.nextInt(directions.length)];
+                if (rc.canMove(dir)) {
+                    rc.move(dir);
+                }
+            }
         }
         // Also try to move randomly.
         Direction dir = directions[rng.nextInt(directions.length)];
         if (rc.canMove(dir)) {
             rc.move(dir);
         }
+    }
+
+    public int get_resource_count(){
+        return rc.getResourceAmount(ResourceType.ADAMANTIUM) + rc.getResourceAmount(ResourceType.MANA) + rc.getResourceAmount(ResourceType.ELIXIR);
     }
 }
