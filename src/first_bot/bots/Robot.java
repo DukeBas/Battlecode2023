@@ -104,7 +104,7 @@ public abstract class Robot {
         if (rc.canMove(direction)) {
             rc.move(direction);
         } else {
-            rc.setIndicatorString("oopsy doopsy, i cannot move there :(");
+            rc.setIndicatorString("oopsy doopsy, i cannot move " + direction.toString() + " there :(");
         }
     }
 }
