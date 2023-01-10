@@ -1,6 +1,8 @@
 package first_bot.bots;
 
 import battlecode.common.*;
+import first_bot.util.Pathfinding;
+import first_bot.util.SimplePathing;
 
 import java.util.Random;
 
@@ -13,6 +15,7 @@ public abstract class Robot {
     Team friendly;
     Team enemy;
     MapLocation built_by;
+    Pathfinding pathfinding;
     // Number of turns this bot has been alive
     static int turnCount = 0;
 
@@ -31,6 +34,7 @@ public abstract class Robot {
         this.enemy = friendly.opponent();
         // TODO: navigate to the closest spot around HQ instead of spot where built
         this.built_by = rc.getLocation();
+        pathfinding = new SimplePathing(rc);
     }
 
     /**
@@ -89,4 +93,18 @@ public abstract class Robot {
      * @throws GameActionException if an illegal game action is performed.
      */
     abstract void run() throws GameActionException;
+
+    // Move towards a Maplocation object
+    public void move_towards(MapLocation goal_location) throws GameActionException {
+        move_towards(pathfinding.getDirection(goal_location));
+    }
+
+    // Move towards a Direction
+    public void move_towards(Direction direction) throws GameActionException {
+        if (rc.canMove(direction)) {
+            rc.move(direction);
+        } else {
+            rc.setIndicatorString("oopsy doopsy, i cannot move there :(");
+        }
+    }
 }
