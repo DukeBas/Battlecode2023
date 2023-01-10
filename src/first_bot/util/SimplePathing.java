@@ -45,6 +45,7 @@ public class SimplePathing implements Pathfinding {
         }
 
         // We cannot move closer so just wait?
+        rc.setIndicatorString("pathfinding done booboo, idk what do");
         return Direction.CENTER;
     }
 }
