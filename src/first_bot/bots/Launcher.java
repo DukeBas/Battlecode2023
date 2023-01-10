@@ -1,7 +1,9 @@
 package first_bot.bots;
 
 import battlecode.common.*;
-import first_bot.util.Constants;
+
+import java.util.Arrays;
+import java.util.Comparator;
 
 import static first_bot.util.Constants.directions;
 
@@ -21,9 +23,13 @@ public class Launcher extends Robot{
         int radius = rc.getType().actionRadiusSquared;
         Team opponent = rc.getTeam().opponent();
         RobotInfo[] enemies = rc.senseNearbyRobots(radius, opponent);
-        if (enemies.length >= 0) {
-            // MapLocation toAttack = enemies[0].location;
-            MapLocation toAttack = rc.getLocation().add(Direction.EAST);
+
+        // Sort enemies by hp
+        Arrays.sort(enemies, Comparator.comparingInt(o -> o.health));
+
+        if (enemies.length > 0) {
+             MapLocation toAttack = enemies[0].location;
+
 
             if (rc.canAttack(toAttack)) {
                 rc.setIndicatorString("Attacking");
