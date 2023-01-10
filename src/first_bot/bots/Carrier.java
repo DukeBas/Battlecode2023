@@ -51,8 +51,9 @@ public class Carrier extends Robot{
                 }
             }
         }
-
-        if (get_resource_count() == MAX_RESOURCES) {
+        if (rc.canTakeAnchor(built_by, Anchor.STANDARD)) {
+            rc.takeAnchor(built_by, Anchor.STANDARD);
+        } else if (get_resource_count() == MAX_RESOURCES) {
             // Resources full, Pathfind to HQ
             if (rc.canTransferResource(built_by, ResourceType.ADAMANTIUM, 1)) {
                 rc.transferResource(built_by, ResourceType.ADAMANTIUM, rc.getResourceAmount(ResourceType.ADAMANTIUM));
