@@ -26,8 +26,11 @@ public class Carrier extends Robot{
             int[] islands = rc.senseNearbyIslands();
             Set<MapLocation> islandLocs = new HashSet<>();
             for (int id : islands) {
-                MapLocation[] thisIslandLocs = rc.senseNearbyIslandLocations(id);
-                islandLocs.addAll(Arrays.asList(thisIslandLocs));
+                // Only add possible island if it is unclaimed
+                if (rc.senseTeamOccupyingIsland(id) == Team.NEUTRAL) {
+                    MapLocation[] thisIslandLocs = rc.senseNearbyIslandLocations(id);
+                    islandLocs.addAll(Arrays.asList(thisIslandLocs));
+                }
             }
             if (islandLocs.size() > 0) {
                 MapLocation islandLocation = islandLocs.iterator().next();
