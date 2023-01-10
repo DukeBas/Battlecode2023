@@ -18,11 +18,11 @@ public class HQ extends Robot{
      */
     @Override
     void run() throws GameActionException {
-        if (rc.canBuildAnchor(Anchor.STANDARD)) {
-            // If we can build an anchor do it!
-            rc.buildAnchor(Anchor.STANDARD);
-            rc.setIndicatorString("Building anchor! " + rc.getAnchor());
-        }
+//        if (rc.canBuildAnchor(Anchor.STANDARD)) {
+//            // If we can build an anchor do it!
+//            rc.buildAnchor(Anchor.STANDARD);
+//            rc.setIndicatorString("Building anchor! " + rc.getAnchor());
+//        }
 
 
         // Let's try to build a carrier.

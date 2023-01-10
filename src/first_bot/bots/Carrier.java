@@ -98,8 +98,10 @@ public class Carrier extends Robot{
                     }
                 }
             } else {
+                System.out.println();
                 rc.setIndicatorString("I dont see any wells :(");
             }
         return nearest_well;
     }
 }
+
