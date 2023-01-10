@@ -51,30 +51,23 @@ public class Carrier extends Robot{
                 }
             }
         }
-        // Try to gather from squares around us.
-        MapLocation me = rc.getLocation();
-        for (int dx = -1; dx <= 1; dx++) {
-            for (int dy = -1; dy <= 1; dy++) {
-                MapLocation wellLocation = new MapLocation(me.x + dx, me.y + dy);
-                if (rc.canCollectResource(wellLocation, -1)) {
-                    // Do not attempt to collect resources if full
-                    if (get_resource_count() >= MAX_RESOURCES) {
-                        rc.collectResource(wellLocation, -1);
-                        rc.setIndicatorString("Collecting, now have, AD:" +
-                                rc.getResourceAmount(ResourceType.ADAMANTIUM) +
-                                " MN: " + rc.getResourceAmount(ResourceType.MANA) +
-                                " EX: " + rc.getResourceAmount(ResourceType.ELIXIR));
-                    }
-                }
-            }
-        }
-        
         if (get_resource_count() == MAX_RESOURCES) {
             // Resources full, Pathfind to HQ
             move_towards(built_by);
         } else {
             // Resources not full, Pathfind to well
-            pathfind_to_nearest_well();
+            MapLocation nearest_well = get_nearest_well();
+            if (nearest_well == null) {
+                // Cant find well, move randomly
+                Direction dir = directions[rng.nextInt(directions.length)];
+                move_towards(dir);
+            } else {
+                if (rc.canCollectResource(nearest_well, -1)) {
+                    rc.collectResource(nearest_well, -1);
+                } else {
+                    move_towards(nearest_well);
+                }
+            }
         }
     }
 
@@ -82,9 +75,9 @@ public class Carrier extends Robot{
         return rc.getResourceAmount(ResourceType.ADAMANTIUM) + rc.getResourceAmount(ResourceType.MANA) + rc.getResourceAmount(ResourceType.ELIXIR);
     }
 
-    public void pathfind_to_nearest_well() throws GameActionException{
+    public MapLocation get_nearest_well() throws GameActionException {
         // Find closest well
-        MapLocation goal_Location = null;
+        MapLocation nearest_well = null;
         WellInfo[] wells = rc.senseNearbyWells();
             int min_dist = Integer.MIN_VALUE;
             if (wells.length != 0) {
@@ -92,20 +85,12 @@ public class Carrier extends Robot{
                     int dist_to_well = well.getMapLocation().distanceSquaredTo(rc.getLocation());
                     if (dist_to_well <= min_dist) {
                         min_dist = dist_to_well;
-                        goal_Location = well.getMapLocation();
-                    }
-                    if (goal_Location != null) {
-                        move_towards(goal_Location);
+                        nearest_well = well.getMapLocation();
                     }
                 }
-                // do navigation
             } else {
-                // No nearby wells
                 rc.setIndicatorString("I dont see any wells :(");
-                // Also try to move randomly.
-                // TODO: FIX ME PLEASE :)
-                Direction dir = directions[rng.nextInt(directions.length)];
-                move_towards(dir);
             }
+        return nearest_well;
     }
 }
