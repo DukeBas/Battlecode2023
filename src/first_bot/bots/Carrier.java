@@ -6,10 +6,14 @@ import first_bot.util.Constants;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
+import first_bot.util.SimplePathing;
 
 import static first_bot.util.Constants.directions;
 
 public class Carrier extends Robot{
+
+    static int MAX_RESOURCES = 40;
+
     public Carrier(RobotController rc) {
         super(rc);
     }
@@ -53,7 +57,8 @@ public class Carrier extends Robot{
             for (int dy = -1; dy <= 1; dy++) {
                 MapLocation wellLocation = new MapLocation(me.x + dx, me.y + dy);
                 if (rc.canCollectResource(wellLocation, -1)) {
-                    if (rng.nextBoolean()) {
+                    // Do not attempt to collect resources if full
+                    if (get_resource_count() >= MAX_RESOURCES) {
                         rc.collectResource(wellLocation, -1);
                         rc.setIndicatorString("Collecting, now have, AD:" +
                                 rc.getResourceAmount(ResourceType.ADAMANTIUM) +
@@ -63,28 +68,42 @@ public class Carrier extends Robot{
                 }
             }
         }
-        // Occasionally try out the carriers attack
-        if (rng.nextInt(20) == 1) {
-            RobotInfo[] enemyRobots = rc.senseNearbyRobots(-1, rc.getTeam().opponent());
-            if (enemyRobots.length > 0) {
-                if (rc.canAttack(enemyRobots[0].location)) {
-                    rc.attack(enemyRobots[0].location);
-                }
-            }
+        
+        if (get_resource_count() == MAX_RESOURCES) {
+            // Resources full, Pathfind to HQ
+            move_towards(built_by);
+        } else {
+            // Resources not full, Pathfind to well
+            pathfind_to_nearest_well();
         }
+    }
 
-        // If we can see a well, move towards it
+    public int get_resource_count() {
+        return rc.getResourceAmount(ResourceType.ADAMANTIUM) + rc.getResourceAmount(ResourceType.MANA) + rc.getResourceAmount(ResourceType.ELIXIR);
+    }
+
+    public void pathfind_to_nearest_well() throws GameActionException{
+        // Find closest well
+        MapLocation goal_Location = rc.getLocation();
         WellInfo[] wells = rc.senseNearbyWells();
-        if (wells.length > 1 && rng.nextInt(3) == 1) {
-            WellInfo well_one = wells[1];
-            Direction dir = me.directionTo(well_one.getMapLocation());
-            if (rc.canMove(dir))
-                rc.move(dir);
-        }
-        // Also try to move randomly.
-        Direction dir = directions[rng.nextInt(directions.length)];
-        if (rc.canMove(dir)) {
-            rc.move(dir);
-        }
+            int min_dist = Integer.MAX_VALUE;
+            if (wells.length != 0) {
+                for (WellInfo well : wells) {
+                    int dist_to_well = well.getMapLocation().distanceSquaredTo(rc.getLocation());
+                    if (dist_to_well <= min_dist) {
+                        min_dist = dist_to_well;
+                        goal_Location = well.getMapLocation();
+                    }
+                    move_towards(goal_Location);
+                }
+                // do navigation
+            } else {
+                // No nearby wells
+                rc.setIndicatorString("I dont see any wells :(");
+                // Also try to move randomly.
+                // TODO: FIX ME PLEASE :)
+                Direction dir = directions[rng.nextInt(directions.length)];
+                move_towards(dir);
+            }
     }
 }

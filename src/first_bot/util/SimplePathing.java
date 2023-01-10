@@ -11,7 +11,7 @@ import battlecode.common.RobotController;
 public class SimplePathing implements Pathfinding {
     RobotController rc;
 
-    SimplePathing(RobotController rc){
+    public SimplePathing(RobotController rc){
         this.rc = rc;
     }
 
