@@ -1,0 +1,2 @@
+- Add checks to see if we go over bytecode limit at the end (check at the end of turn is still the same as the beginning)
+- have proper try to move function (-> log error if it tries to move somewhere but it somehow can't)
