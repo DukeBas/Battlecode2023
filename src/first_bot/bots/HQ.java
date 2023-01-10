@@ -18,17 +18,18 @@ public class HQ extends Robot{
      */
     @Override
     void run() throws GameActionException {
-       if (rc.getResourceAmount(ResourceType.ADAMANTIUM) > 1000 && rc.canBuildAnchor(Anchor.STANDARD)) {
-           // If we can build an anchor do it!
-           rc.buildAnchor(Anchor.STANDARD);
-           rc.setIndicatorString("Building anchor! " + rc.getAnchor());
-       }
+       
 
-
-        // Let's try to build a carrier.
-        tryToBuild(RobotType.CARRIER);
-        // Let's try to build a launcher.
-        tryToBuild(RobotType.LAUNCHER);
+        if (rc.senseNearbyRobots(RobotType.HEADQUARTERS.visionRadiusSquared, friendly).length < 35) {
+            // Let's try to build a carrier.
+            tryToBuild(RobotType.CARRIER);
+            // Let's try to build a launcher.
+            tryToBuild(RobotType.LAUNCHER);
+        } else if (rc.canBuildAnchor(Anchor.STANDARD)) {
+            // If we can build an anchor do it!
+            rc.buildAnchor(Anchor.STANDARD);
+            rc.setIndicatorString("Building anchor! " + rc.getAnchor());
+        }
     }
 
     public void tryToBuild(RobotType type) throws GameActionException {

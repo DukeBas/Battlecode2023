@@ -67,7 +67,7 @@ public class Carrier extends Robot{
         } else {
             // Resources not full, Pathfind to well
             MapLocation nearest_well = get_nearest_well();
-            if (nearest_well == null) {
+            if (nearest_well == null || rc.getAnchor() != null) {
                 // Cant find well, move randomly
                 Direction dir = directions[rng.nextInt(directions.length)];
                 move_towards(dir);
