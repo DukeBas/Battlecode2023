@@ -19,7 +19,7 @@ public abstract class Robot {
     Pathfinding pathfinding;
     // Number of turns this bot has been alive
     static int turnCount = 0;
-    static int MAX_WELLS = 5;
+    static int MAX_WELLS = 16;
 
     /**
      * A random number generator.
@@ -90,8 +90,8 @@ public abstract class Robot {
      */
     private void _run() throws GameActionException {
         turnCount++;
-        scan();
         this.run();
+        scan();
     }
 
     /**
@@ -133,44 +133,68 @@ public abstract class Robot {
         WellInfo[] wells = rc.senseNearbyWells();
         for (WellInfo well : wells) {
             int well_code = encode_well(well);
-            // store_wellinfo(well_code);
-            int x = rc.readSharedArray(4);
-            rc.setIndicatorString(String.valueOf(x));
+            store_wellinfo(well_code);
         }
+
     }
 
+    // Convert well info into binary, then into decimal and return
+    // first 2 bits correspond to resource
+    // the next 7 bits correspond to x
+    // the next 7 correspond to y
     private int encode_well(WellInfo wellinfo) {
-        int code = 0;
+        String resource_code = "";
         ResourceType type = wellinfo.getResourceType();
         if (type == ResourceType.ADAMANTIUM) {
-            code = 1;
+            resource_code = String.format("%2s", Integer.toBinaryString(1)).replace(' ', '0');
         } else if (type == ResourceType.ELIXIR) {
-            code = 2;
+            resource_code = String.format("%2s", Integer.toBinaryString(2)).replace(' ', '0');
         } else if (type == ResourceType.MANA) {
-            code = 3;
+            resource_code = String.format("%2s", Integer.toBinaryString(3)).replace(' ', '0');
         }
 
         MapLocation loc = wellinfo.getMapLocation();
-        code = ((int) Math.pow(2,2)) + loc.x;
-        code = ((int) Math.pow(2,3)) + loc.y;
-        return code;
+        String location_code = "";
+        location_code = location_code + String.format("%7s", Integer.toBinaryString(loc.x)).replace(' ', '0');
+        location_code = location_code + String.format("%7s", Integer.toBinaryString(loc.y)).replace(' ', '0');
+        return Integer.parseInt(resource_code+location_code, 2);
     }
 
+    // Get well location from the decimal code.
     private MapLocation decode_well_location (Integer wellcode) {
-        
+        String code_binary = String.format("%16s", Integer.toBinaryString(wellcode)).replace(' ', '0');
+        int x = Integer.parseInt(code_binary.substring(2, 9), 2);
+        int y = Integer.parseInt(code_binary.substring(9, 16), 2);
+        MapLocation loc = new MapLocation(x, y);
+        return loc;
     }
 
+    // Get well resource type from decimal code.
     private ResourceType decode_well_resourceType (Integer wellcode) {
+        String code_binary = String.format("%16s", Integer.toBinaryString(wellcode)).replace(' ', '0');
+        int int_code = Integer.parseInt(code_binary.substring(0, 2), 2);
 
+        ResourceType type = null;
+        if (int_code == 1) {
+            type = ResourceType.ADAMANTIUM;
+        } else if (int_code == 2) {
+            type = ResourceType.ELIXIR;
+        } else if (int_code == 3) {
+            type = ResourceType.MANA;
+        }
+        return type;
     }
 
-    // private void store_wellinfo(Integer wellcode) {
-    //     boolean duplicate = false;
-    //     for (int i = 0; i < MAX_WELLS; i++) {
-    //         int read = rc.readSharedArray(i);
-    //         if (read == wellcode) {
-    //             if ()
-    //         }
-    //     }
-    // }
+    // Checks if wellcode is duplicate, and if not stores it.
+    private void store_wellinfo(Integer wellcode) throws GameActionException{
+        for (int i = 0; i < MAX_WELLS; i++) {
+            int read = rc.readSharedArray(i);
+            if (read == wellcode) {
+                break;
+            }
+            if (read == 0) {
+                rc.writeSharedArray(i, wellcode);
+            }
+        }
+    }
 }
