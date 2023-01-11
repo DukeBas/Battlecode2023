@@ -1,6 +1,7 @@
 package first_bot.bots;
 
 import battlecode.common.*;
+import battlecode.world.Well;
 import first_bot.util.Pathfinding;
 import first_bot.util.SimplePathing;
 
@@ -18,6 +19,7 @@ public abstract class Robot {
     Pathfinding pathfinding;
     // Number of turns this bot has been alive
     static int turnCount = 0;
+    static int MAX_WELLS = 5;
 
     /**
      * A random number generator.
@@ -88,6 +90,7 @@ public abstract class Robot {
      */
     private void _run() throws GameActionException {
         turnCount++;
+        scan();
         this.run();
     }
 
@@ -112,7 +115,8 @@ public abstract class Robot {
         }
     }
 
-    private MapLocation getHQ() throws GameActionException{
+    // Get HQ location
+    private MapLocation getHQ() throws GameActionException {
         RobotInfo friendlies[] = rc.senseNearbyRobots(2, friendly);
         MapLocation HQ = null;
         for (RobotInfo robot : friendlies) {
@@ -122,4 +126,51 @@ public abstract class Robot {
         }
         return HQ;
     }
+
+    // Scan for wells and store info
+    // TODO: scan for other shit
+    private void scan() throws GameActionException{
+        WellInfo[] wells = rc.senseNearbyWells();
+        for (WellInfo well : wells) {
+            int well_code = encode_well(well);
+            // store_wellinfo(well_code);
+            int x = rc.readSharedArray(4);
+            rc.setIndicatorString(String.valueOf(x));
+        }
+    }
+
+    private int encode_well(WellInfo wellinfo) {
+        int code = 0;
+        ResourceType type = wellinfo.getResourceType();
+        if (type == ResourceType.ADAMANTIUM) {
+            code = 1;
+        } else if (type == ResourceType.ELIXIR) {
+            code = 2;
+        } else if (type == ResourceType.MANA) {
+            code = 3;
+        }
+
+        MapLocation loc = wellinfo.getMapLocation();
+        code = ((int) Math.pow(2,2)) + loc.x;
+        code = ((int) Math.pow(2,3)) + loc.y;
+        return code;
+    }
+
+    private MapLocation decode_well_location (Integer wellcode) {
+        
+    }
+
+    private ResourceType decode_well_resourceType (Integer wellcode) {
+
+    }
+
+    // private void store_wellinfo(Integer wellcode) {
+    //     boolean duplicate = false;
+    //     for (int i = 0; i < MAX_WELLS; i++) {
+    //         int read = rc.readSharedArray(i);
+    //         if (read == wellcode) {
+    //             if ()
+    //         }
+    //     }
+    // }
 }
