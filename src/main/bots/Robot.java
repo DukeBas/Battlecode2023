@@ -1,6 +1,7 @@
 package main.bots;
 
 import battlecode.common.*;
+import main.util.Constants;
 import main.util.Pathfinding;
 import main.util.SimplePathing;
 
@@ -32,10 +33,12 @@ public abstract class Robot {
     static int MAX_HQS = 4; // accounts only for one team, so max HQ 4 means 8 HQs in total on the map
 
     // Indices for in the shared array
-    static int START_INDEX_FRIENDLY_HQS = 0;
+    static int RESERVED_SPOT_BOOLS = 0;
+    static int START_INDEX_FRIENDLY_HQS = RESERVED_SPOT_BOOLS + 1;
     static int START_INDEX_ENEMY_HQS = START_INDEX_FRIENDLY_HQS + MAX_HQS;
     static int START_INDEX_WELLS = START_INDEX_ENEMY_HQS + MAX_HQS;
-    // MAX_HQS*2 + MAX_WELLS <= 64 !!!
+
+    // #numRESERVERD_SPOTS(=1) + MAX_HQS*2 + MAX_WELLS <= 64 !!!
 
     /**
      * A random number generator.
@@ -304,7 +307,7 @@ public abstract class Robot {
                     for (int i = START_INDEX_WELLS; i < START_INDEX_WELLS + MAX_WELLS; i++) {
                         int read = rc.readSharedArray(i);
                         if (read == 0) { // we found an empty spot!
-                            System.out.println("Writing " + m + " for "+ decode_well_resourceType(m) + " well from " + decode_well_location(m) + " to index " + i);
+                            System.out.println("Writing " + m + " for " + decode_well_resourceType(m) + " well from " + decode_well_location(m) + " to index " + i);
                             rc.writeSharedArray(i, m);
                             break;
                         }
@@ -315,5 +318,33 @@ public abstract class Robot {
         }
     }
 
-    // TODO: getNearestWell(resourceType), getClosestEnemyHQ, getClosestFriendlyHQ
+    // Save a boolean to the shared array
+    void commSaveBool(Constants.Communication_bools type, boolean b) throws GameActionException {
+        int index = type.ordinal();
+        int shared = rc.readSharedArray(RESERVED_SPOT_BOOLS);
+        int updated = shared;
+
+        if (b) {
+            // set bit at position index to 1
+            updated |= 1 << index;
+        } else {
+            // set bit at position index to 0
+            updated &= ~(1 << index);
+        }
+
+        // write back, if changed
+        if (shared != updated) {
+            rc.writeSharedArray(RESERVED_SPOT_BOOLS, updated);
+        }
+    }
+
+    // Read a boolean from the shared array
+    boolean commReadBool(Constants.Communication_bools type) throws GameActionException {
+        int index = type.ordinal();
+        int shared = rc.readSharedArray(RESERVED_SPOT_BOOLS);
+        return 1 == ((shared >> index) & 1);
+    }
 }
+
+// TODO: getNearestWell(resourceType), getClosestEnemyHQ, getClosestFriendlyHQ
+

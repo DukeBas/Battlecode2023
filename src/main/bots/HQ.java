@@ -1,6 +1,7 @@
 package main.bots;
 
 import battlecode.common.*;
+import main.util.Constants;
 
 import java.util.Arrays;
 
@@ -37,17 +38,18 @@ public class HQ extends Robot {
                 break;
             case 2:
                 // Try to figure out the symmetry of the map
+
                 break;
             default:
                 break;
         }
 
         // Uncomment below to see shared array for every turn!
-        int[] arr = new int[64];
-        for (int i = 0; i < 64; i++) {
-            arr[i] = rc.readSharedArray(i);
-        }
-        System.out.println(Arrays.toString(arr));
+//        int[] arr = new int[64];
+//        for (int i = 0; i < 64; i++) {
+//            arr[i] = rc.readSharedArray(i);
+//        }
+//        System.out.println(Arrays.toString(arr));
 
 
 
@@ -77,6 +79,8 @@ public class HQ extends Robot {
                 break;
             }
         }
+
+        // TODO: base build direction on RobotType and situation
 
         // Check if we have a valid spot to build in
         if (dir == null) {
