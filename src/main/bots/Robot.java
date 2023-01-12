@@ -5,6 +5,7 @@ import battlecode.world.Well;
 import main.util.Pathfinding;
 import main.util.SimplePathing;
 
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Random;
 
@@ -21,12 +22,21 @@ public abstract class Robot {
 
 
     static int turnCount = 0; // Number of turns this bot has been alive
-    static int MAX_WELLS = 16;
-    static int MAX_HQS = 4; // accounts only for one team, so max HQ 4 means 8 HQs in total on the map
 
+
+    /*
+        COMMUNICATION VARIABLES
+     */
     // Sets that hold messages that we could not send before
     HashSet<Integer> hq_messages;
     HashSet<Integer> well_messages;
+    static int MAX_WELLS = 16;
+    static int MAX_HQS = 4; // accounts only for one team, so max HQ 4 means 8 HQs in total on the map
+
+    // Indices for in the shared array
+    static int START_INDEX_FRIENDLY_HQS = 0;
+    static int START_INDEX_ENEMY_HQS = START_INDEX_FRIENDLY_HQS + MAX_HQS;
+    static int START_INDEX_WELLS = START_INDEX_ENEMY_HQS + MAX_HQS;
 
 
     /**
@@ -100,7 +110,18 @@ public abstract class Robot {
     private void _run() throws GameActionException {
         turnCount++;
         scan();
+        sendCommunicationBuffer();
         this.run();
+
+        // Uncomment below to see shared array for every turn!
+//        if (rc.getID() == 3){
+//            int[] arr = new int[64];
+//            for (int i = 0; i < 64; i++) {
+//                arr[i] = rc.readSharedArray(i);
+//            }
+//            System.out.println("turn: " + turnCount);
+//            System.out.println(Arrays.toString(arr));
+//        }
     }
 
     /**
@@ -218,6 +239,7 @@ public abstract class Robot {
     // Encode hqinfo into integer, first 8 bits are x, second 8 bits are y
     private int encode_hq(RobotInfo hq) {
         MapLocation loc = hq.getLocation();
+        // TODO: do without string operations as they are slow
         String location_code = "";
         location_code = location_code + String.format("%8s", Integer.toBinaryString(loc.x)).replace(' ', '0');
         location_code = location_code + String.format("%8s", Integer.toBinaryString(loc.y)).replace(' ', '0');
@@ -253,16 +275,18 @@ public abstract class Robot {
 
             if (!hq_messages.isEmpty()){
                 // Remove an hq if we know it already
-                for (int i = MAX_WELLS; i < MAX_WELLS + MAX_HQS; i++) {
+                for (int i = START_INDEX_ENEMY_HQS; i < START_INDEX_ENEMY_HQS + MAX_HQS; i++) {
                     int read = rc.readSharedArray(i);
                     hq_messages.remove(read);
                 }
                 // Store enemy HQs
                 for (Integer m : hq_messages) {
-                    for (int i = MAX_WELLS; i < MAX_WELLS + MAX_HQS; i++) {
+                    for (int i = START_INDEX_ENEMY_HQS; i < START_INDEX_ENEMY_HQS + MAX_HQS; i++) {
                         int read = rc.readSharedArray(i);
                         if (read == 0){ // we found an empty spot!
+                            System.out.println("Writing HQ from " + decode_hq_location(m) + " to index " + i);
                             rc.writeSharedArray(i, m);
+                            break;
                         }
                     }
                 }
@@ -271,16 +295,18 @@ public abstract class Robot {
 
             if (!well_messages.isEmpty()){
                 // Remove an hq if we know it already
-                for (int i = 0; i < MAX_WELLS; i++) {
+                for (int i = START_INDEX_WELLS; i < START_INDEX_WELLS + MAX_WELLS; i++) {
                     int read = rc.readSharedArray(i);
                     well_messages.remove(read);
                 }
                 // Store enemy HQs
                 for (Integer m : well_messages) {
-                    for (int i = 0; i < MAX_WELLS; i++) {
+                    for (int i = START_INDEX_WELLS; i < START_INDEX_WELLS + MAX_WELLS; i++) {
                         int read = rc.readSharedArray(i);
                         if (read == 0){ // we found an empty spot!
+                            System.out.println("Writing " + decode_well_resourceType(m) +" well from " + decode_well_location(m) + " to index " + i);
                             rc.writeSharedArray(i, m);
+                            break;
                         }
                     }
                 }
