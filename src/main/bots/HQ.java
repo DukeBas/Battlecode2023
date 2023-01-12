@@ -92,19 +92,19 @@ public class HQ extends Robot {
         test = new boolean[121];
 //        test = new boolean[61][61];
 
-        test[offsetToArrIndex(0,0)] = true;
+        test[offsetToArrIndex(0, 0)] = true;
 
         // Start from own location and try two DFS', one right inclined and one left
         int max_depth = 8;
         MapLocation head = ownLocation;
-        MapLocation offset = new MapLocation(0,0);
+        MapLocation offset = new MapLocation(0, 0);
 
         // right inclined
         for (int i = max_depth; --i > 0; ) {
             Direction dirToTarget = head.directionTo(testLoc);
 
             // Check if we found the goal
-            if (head.equals(testLoc)) {
+            if (head.distanceSquaredTo(testLoc) <= 2) {
 //                System.out.println("Goal found in " + (max_depth - i) + " steps");
                 return;
             }
@@ -155,7 +155,7 @@ public class HQ extends Robot {
                     int new_x = ownLocation.x + a;
                     int new_y = ownLocation.y + b;
                     if (new_x >= 0 && new_x < width && new_y >= 0 && new_y < height) {
-                        test[offsetToArrIndex(a,b)] = false;
+                        test[offsetToArrIndex(a, b)] = false;
                     }
                 }
             }
@@ -164,12 +164,12 @@ public class HQ extends Robot {
 
         // left inclined
         head = ownLocation;
-        offset = new MapLocation(0,0);
+        offset = new MapLocation(0, 0);
         for (int i = max_depth; --i > 0; ) {
             Direction dirToTarget = head.directionTo(testLoc);
 
             // Check if we found the goal
-            if (head.equals(testLoc)) {
+            if (head.distanceSquaredTo(testLoc) <= 2) {
 //                System.out.println("Goal found in " + (max_depth - i) + " steps");
                 return;
             }
@@ -210,7 +210,7 @@ public class HQ extends Robot {
     }
 
     private int offsetToArrIndex(int x, int y) {
-        return (x + 5)*11 + y+5;
+        return (x + 5) * 11 + y + 5;
     }
 
 
