@@ -1,6 +1,12 @@
 package main.bots;
 
 import battlecode.common.*;
+import main.util.Constants;
+
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.LinkedList;
+
 import static first_bot.util.Constants.directions;
 
 public class HQ extends Robot {
@@ -10,6 +16,8 @@ public class HQ extends Robot {
         super(rc);
         ownLocation = rc.getLocation();
     }
+
+    boolean[][] test;
 
     /**
      * This code is run once per turn (assuming we do not go over bytecode limits.)
@@ -41,7 +49,7 @@ public class HQ extends Robot {
                 int before = Clock.getBytecodesLeft();
                 int turnCountStart = turnCount;
 
-                System.out.println();
+                extracted();
 
                 int after = Clock.getBytecodesLeft();
                 System.out.println("USED " + (before - after) + " BYTECODE" + (turnCountStart != turnCount ? ", WENT OVER LIMIT!!!" : ""));
@@ -72,6 +80,39 @@ public class HQ extends Robot {
         }
     }
 
+    private void extracted() throws GameActionException {
+        MapLocation testLoc = ownLocation
+                .add(Direction.NORTHEAST)
+                .add(Direction.NORTHEAST)
+                .add(Direction.EAST);
+
+        test = new boolean[61][61];
+
+//        LinkedList<MapLocation> queue = new LinkedList<>(); // todo custom linked list
+//        queue.add(testLoc);
+        // TODO check if having an initial capacity is smart
+        // todo custom hashset for locations
+//        HashSet<MapLocation> seen = new HashSet<>(70); // MapLocations can be compared easily
+//        seen.add(ownLocation);
+        test[ownLocation.x][ownLocation.y] = true;
+
+        // Start from own location and try two DFS', one right inclined and one left
+        int max_depth = 8;
+        MapLocation head = ownLocation;
+
+        for (int i = max_depth; --i > 0; ) {
+            Direction dirToTarget = head.directionTo(testLoc);
+            for (int j = 7; --j >= 0; ) {
+                dirToTarget = dirToTarget.rotateRight();
+                MapLocation next_possible_head = head.add(dirToTarget);
+
+                if (locationOnMap(next_possible_head) && rc.sensePassability(next_possible_head) && !rc.isLocationOccupied(next_possible_head)) {
+                    head = next_possible_head;
+                    break; // CHANGE
+                }
+            }
+        }
+    }
 
     public void tryToBuild(RobotType type) throws GameActionException {
         // Try all directions to find one to build in
