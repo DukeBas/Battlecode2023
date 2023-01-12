@@ -81,21 +81,23 @@ public class HQ extends Robot {
     }
 
     private void extracted() throws GameActionException {
-        // todo: optimize for map size instead of always just using 60 (max)
+        // DFS FOR R^2 of 20
+
         MapLocation testLoc = ownLocation
                 .add(Direction.NORTHEAST)
                 .add(Direction.NORTHEAST)
                 .add(Direction.EAST);
         rc.setIndicatorDot(testLoc, 255, 255, 255);
 
-        test = new boolean[3601];
+        test = new boolean[121];
 //        test = new boolean[61][61];
 
-        test[60 * ownLocation.x + ownLocation.y] = true;
+        test[offsetToArrIndex(0,0)] = true;
 
         // Start from own location and try two DFS', one right inclined and one left
-        int max_depth = 8;
+        int max_depth = 12;
         MapLocation head = ownLocation;
+        MapLocation offset = new MapLocation(0,0);
 
         // right inclined
         for (int i = max_depth; --i > 0; ) {
@@ -114,14 +116,17 @@ public class HQ extends Robot {
 
                 if (!rc.canSenseLocation(next_possible_head)) continue; // location out of bounds
 
-                if (!test[60 * next_possible_head.x + next_possible_head.y]) {
+                MapLocation current_offset = offset.add(dirToTarget);
+
+                if (!test[offsetToArrIndex(current_offset.x, current_offset.y)]) {
 //                    System.out.println("Trying " + next_possible_head.toString());
                     // set as seen so we don't revisit
-                    test[60 * next_possible_head.x + next_possible_head.y] = true;
+                    test[offsetToArrIndex(current_offset.x, current_offset.y)] = true;
 
                     if (rc.sensePassability(next_possible_head) && !rc.isLocationOccupied(next_possible_head)) {
 //                        System.out.println("OLD HEAD IS " + head.toString() + " and next HEAD is " + next_possible_head.toString());
                         head = next_possible_head;
+                        offset = offset.add(dirToTarget);
                         head_same = false;
                         rc.setIndicatorDot(head, 100, 150, 23);
                         break;
@@ -149,7 +154,7 @@ public class HQ extends Robot {
                     int new_x = ownLocation.x + a;
                     int new_y = ownLocation.y + b;
                     if (new_x >= 0 && new_x < width && new_y >= 0 && new_y < height) {
-                        test[60 * new_x + new_y] = false;
+                        test[offsetToArrIndex(a,b)] = false;
                     }
                 }
             }
@@ -158,6 +163,7 @@ public class HQ extends Robot {
 
         // left inclined
         head = ownLocation;
+        offset = new MapLocation(0,0);
         for (int i = max_depth; --i > 0; ) {
             Direction dirToTarget = head.directionTo(testLoc);
 
@@ -174,15 +180,18 @@ public class HQ extends Robot {
 
                 if (!rc.canSenseLocation(next_possible_head)) continue; // location out of bounds
 
-                if (!test[60 * next_possible_head.x + next_possible_head.y]) {
+                MapLocation current_offset = offset.add(dirToTarget);
+
+                if (!test[offsetToArrIndex(current_offset.x, current_offset.y)]) {
 //                    System.out.println("Trying " + next_possible_head.toString());
                     // set as seen so we don't revisit
-                    test[60 * next_possible_head.x + next_possible_head.y] = true;
+                    test[offsetToArrIndex(current_offset.x, current_offset.y)] = true;
 
                     if (rc.sensePassability(next_possible_head) && !rc.isLocationOccupied(next_possible_head)) {
 //                        System.out.println("OLD HEAD IS " + head.toString() + " and next HEAD is " + next_possible_head.toString());
                         head = next_possible_head;
                         head_same = false;
+                        offset = offset.add(dirToTarget);
                         rc.setIndicatorDot(head, 200, 50, 230);
                         break;
                     }
@@ -197,6 +206,10 @@ public class HQ extends Robot {
                 return;
             }
         }
+    }
+
+    private int offsetToArrIndex(int x, int y) {
+        return (x + 5)*11 + y+5;
     }
 
 
