@@ -1,9 +1,9 @@
-package first_bot.bots;
+package main.bots;
 
 import battlecode.common.*;
 import battlecode.world.Well;
-import first_bot.util.Pathfinding;
-import first_bot.util.SimplePathing;
+import main.util.Pathfinding;
+import main.util.SimplePathing;
 
 import java.util.Random;
 
@@ -92,7 +92,7 @@ public abstract class Robot {
     private void _run() throws GameActionException {
         turnCount++;
         this.run();
-//        scan();
+        scan();
     }
 
     /**
