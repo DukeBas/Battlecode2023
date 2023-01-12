@@ -91,8 +91,8 @@ public abstract class Robot {
      */
     private void _run() throws GameActionException {
         turnCount++;
-        this.run();
         scan();
+        this.run();
     }
 
     /**
@@ -118,7 +118,7 @@ public abstract class Robot {
 
     // Get HQ location
     private MapLocation getHQ() throws GameActionException {
-        RobotInfo friendlies[] = rc.senseNearbyRobots(2, friendly);
+        RobotInfo[] friendlies = rc.senseNearbyRobots(2, friendly);
         MapLocation HQ = null;
         for (RobotInfo robot : friendlies) {
             if (robot.type == RobotType.HEADQUARTERS) {
@@ -175,8 +175,7 @@ public abstract class Robot {
         String code_binary = String.format("%16s", Integer.toBinaryString(wellcode)).replace(' ', '0');
         int x = Integer.parseInt(code_binary.substring(2, 9), 2);
         int y = Integer.parseInt(code_binary.substring(9, 16), 2);
-        MapLocation loc = new MapLocation(x, y);
-        return loc;
+        return new MapLocation(x, y);
     }
 
     // Get well resource type from decimal code.
@@ -222,8 +221,7 @@ public abstract class Robot {
         String code_binary = String.format("%16s", Integer.toBinaryString(hq_code)).replace(' ', '0');
         int x = Integer.parseInt(code_binary.substring(0, 8), 2);
         int y = Integer.parseInt(code_binary.substring(8, 16), 2);
-        MapLocation loc = new MapLocation(x, y);
-        return loc;
+        return new MapLocation(x, y);
     }
 
     // Checks if hq_code is duplicate, and if not stores it.
