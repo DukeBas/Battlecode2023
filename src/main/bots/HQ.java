@@ -48,9 +48,9 @@ public class HQ extends Robot {
                 extracted();
 
                 int after = Clock.getBytecodesLeft();
-                int diff = before- after;
+                int diff = before - after;
 //                System.out.println("USED " + diff + " BYTECODE" + (turnCountStart != turnCount ? ", WENT OVER LIMIT!!!" : ""));
-                if (diff>mostBytecodeExtracted){
+                if (diff > mostBytecodeExtracted) {
                     mostBytecodeExtracted = diff;
                     System.out.println("new bytecode record :(  " + diff);
                 }
@@ -103,26 +103,26 @@ public class HQ extends Robot {
             Direction dirToTarget = head.directionTo(testLoc);
 
             // Check if we found the goal
-            if (head.equals(testLoc)){
+            if (head.equals(testLoc)) {
 //                System.out.println("Goal found in " + (max_depth - i) + " steps");
                 break;
             }
 
-            MapLocation headAtStart = head;
+            boolean head_same = true;
 
             for (int j = 7; --j >= 0; ) {
                 MapLocation next_possible_head = head.add(dirToTarget);
 
                 if (!locationOnMap(next_possible_head)) continue; // location out of bounds
 
-                if (!test[60 * next_possible_head.x + next_possible_head.y]){
+                if (!test[60 * next_possible_head.x + next_possible_head.y]) {
 //                    System.out.println("Trying " + next_possible_head.toString());
                     // set as seen so we don't revisit
                     test[60 * next_possible_head.x + next_possible_head.y] = true;
 
                     if (rc.canSenseLocation(next_possible_head) && rc.sensePassability(next_possible_head) && !rc.isLocationOccupied(next_possible_head)) {
 //                        System.out.println("OLD HEAD IS " + head.toString() + " and next HEAD is " + next_possible_head.toString());
-                        head = next_possible_head;
+                        head_same = false;
                         rc.setIndicatorDot(head, 100, 150, 23);
                         break;
                     }
@@ -132,7 +132,7 @@ public class HQ extends Robot {
             }
 
             // Check if we are stuck, just quit if we are
-            if (head.equals(headAtStart)){
+            if (head_same) {
 //                System.out.println("stuck right");
                 break;
             }
@@ -141,12 +141,12 @@ public class HQ extends Robot {
         //todo check bytecode used/left
 
         // reset seen around start
-        for (int a = -1; a <= 1; a++){
-            for (int b = -1; b <= 1; b++){
-                if (a != 0 || b != 0){
-                    int new_x =ownLocation.x + a;
-                    int new_y =ownLocation.y + b;
-                    if (new_x >= 0 &&  new_x < rc.getMapWidth() && new_y >= 0 && new_y < rc.getMapHeight()){
+        for (int a = -1; a <= 1; a++) {
+            for (int b = -1; b <= 1; b++) {
+                if (a != 0 || b != 0) {
+                    int new_x = ownLocation.x + a;
+                    int new_y = ownLocation.y + b;
+                    if (new_x >= 0 && new_x < rc.getMapWidth() && new_y >= 0 && new_y < rc.getMapHeight()) {
                         test[60 * new_x + new_y] = false;
                     }
                 }
@@ -160,19 +160,19 @@ public class HQ extends Robot {
             Direction dirToTarget = head.directionTo(testLoc);
 
             // Check if we found the goal
-            if (head.equals(testLoc)){
+            if (head.equals(testLoc)) {
 //                System.out.println("Goal found in " + (max_depth - i) + " steps");
                 break;
             }
 
-            MapLocation headAtStart = head;
+            boolean head_same = true;
 
             for (int j = 7; --j >= 0; ) {
                 MapLocation next_possible_head = head.add(dirToTarget);
 
                 if (!locationOnMap(next_possible_head)) continue; // location out of bounds
 
-                if (!test[60 * next_possible_head.x + next_possible_head.y]){
+                if (!test[60 * next_possible_head.x + next_possible_head.y]) {
 //                    System.out.println("Trying " + next_possible_head.toString());
                     // set as seen so we don't revisit
                     test[60 * next_possible_head.x + next_possible_head.y] = true;
@@ -180,6 +180,7 @@ public class HQ extends Robot {
                     if (rc.canSenseLocation(next_possible_head) && rc.sensePassability(next_possible_head) && !rc.isLocationOccupied(next_possible_head)) {
 //                        System.out.println("OLD HEAD IS " + head.toString() + " and next HEAD is " + next_possible_head.toString());
                         head = next_possible_head;
+                        head_same = false;
                         rc.setIndicatorDot(head, 200, 50, 230);
                         break;
                     }
@@ -189,7 +190,7 @@ public class HQ extends Robot {
             }
 
             // Check if we are stuck, just quit if we are
-            if (head.equals(headAtStart)){
+            if (head_same) {
 //                System.out.println("stuck left");
                 return;
             }
@@ -197,10 +198,10 @@ public class HQ extends Robot {
     }
 
     // TODO REMOVE
-    public boolean locationOnMap(MapLocation loc){
+    public boolean locationOnMap(MapLocation loc) {
         int x = loc.x;
         int y = loc.y;
-        return x >= 0 &&  x < rc.getMapWidth() && y >= 0 && y < rc.getMapHeight();
+        return x >= 0 && x < rc.getMapWidth() && y >= 0 && y < rc.getMapHeight();
     }
 
     public void tryToBuild(RobotType type) throws GameActionException {
