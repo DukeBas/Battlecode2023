@@ -1,9 +1,12 @@
 package main.bots;
 
 import battlecode.common.*;
+
+import java.util.Arrays;
+
 import static first_bot.util.Constants.directions;
 
-public class HQ extends Robot{
+public class HQ extends Robot {
     MapLocation ownLocation;
 
     public HQ(RobotController rc) {
@@ -18,8 +21,39 @@ public class HQ extends Robot{
      */
     @Override
     void run() throws GameActionException {
-       
+       /*
+            HQ-specific Communication
+        */
+        switch (turnCount) {
+            case 1:
+                // Save our location to shared array
+                // Find an empty spot, save it there
+                for (int i = START_INDEX_FRIENDLY_HQS; i < START_INDEX_FRIENDLY_HQS + MAX_HQS; i++) {
+                    if (rc.readSharedArray(i) == 0) {
+                        rc.writeSharedArray(i, encode_HQ_location(ownLocation));
+                        break;
+                    }
+                }
+                break;
+            case 2:
+                // Try to figure out the symmetry of the map
+                break;
+            default:
+                break;
+        }
 
+        // Uncomment below to see shared array for every turn!
+        int[] arr = new int[64];
+        for (int i = 0; i < 64; i++) {
+            arr[i] = rc.readSharedArray(i);
+        }
+        System.out.println(Arrays.toString(arr));
+
+
+
+        /*
+            Unit building
+         */
         if (rc.senseNearbyRobots(RobotType.HEADQUARTERS.visionRadiusSquared, friendly).length < 35) {
             // Let's try to build a carrier.
             tryToBuild(RobotType.CARRIER);
@@ -37,7 +71,7 @@ public class HQ extends Robot{
         Direction dir = null;
         for (Direction d : directions) {
             MapLocation loc = ownLocation.add(d);
-            if (!rc.isLocationOccupied(loc) && rc.sensePassability(loc)){
+            if (!rc.isLocationOccupied(loc) && rc.sensePassability(loc)) {
                 // we can build on this spot!
                 dir = d;
                 break;

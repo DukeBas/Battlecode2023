@@ -1,11 +1,9 @@
 package main.bots;
 
 import battlecode.common.*;
-import battlecode.world.Well;
 import main.util.Pathfinding;
 import main.util.SimplePathing;
 
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Random;
 
@@ -37,7 +35,7 @@ public abstract class Robot {
     static int START_INDEX_FRIENDLY_HQS = 0;
     static int START_INDEX_ENEMY_HQS = START_INDEX_FRIENDLY_HQS + MAX_HQS;
     static int START_INDEX_WELLS = START_INDEX_ENEMY_HQS + MAX_HQS;
-
+    // MAX_HQS*2 + MAX_WELLS <= 64 !!!
 
     /**
      * A random number generator.
@@ -112,16 +110,6 @@ public abstract class Robot {
         scan();
         sendCommunicationBuffer();
         this.run();
-
-        // Uncomment below to see shared array for every turn!
-//        if (rc.getID() == 3){
-//            int[] arr = new int[64];
-//            for (int i = 0; i < 64; i++) {
-//                arr[i] = rc.readSharedArray(i);
-//            }
-//            System.out.println("turn: " + turnCount);
-//            System.out.println(Arrays.toString(arr));
-//        }
     }
 
     /**
@@ -145,7 +133,7 @@ public abstract class Robot {
         }
     }
 
-    // Get HQ location
+    // Get touching HQ location
     private MapLocation getHQ() throws GameActionException {
         RobotInfo[] friendlies = rc.senseNearbyRobots(2, friendly);
         MapLocation HQ = null;
@@ -171,7 +159,7 @@ public abstract class Robot {
         RobotInfo[] hqs = rc.senseNearbyRobots(-1, enemy);
         for (RobotInfo hq : hqs) {
             if (hq.type == RobotType.HEADQUARTERS) {
-                int hq_code = encode_hq(hq);
+                int hq_code = encode_HQ_location(hq.getLocation());
                 store_hq_info(hq_code);
             }
         }
@@ -217,7 +205,7 @@ public abstract class Robot {
         String code_binary = String.format("%16s", Integer.toBinaryString(wellcode)).replace(' ', '0');
         int int_code = Integer.parseInt(code_binary.substring(0, 2), 2);
 
-        ResourceType type = null;
+        ResourceType type;
         switch (int_code) {
             case 1:
                 type = ResourceType.ADAMANTIUM;
@@ -250,8 +238,7 @@ public abstract class Robot {
     }
 
     // Encode hqinfo into integer, first 8 bits are x, second 8 bits are y
-    private int encode_hq(RobotInfo hq) {
-        MapLocation loc = hq.getLocation();
+    int encode_HQ_location(MapLocation loc) {
         // TODO: do without string operations as they are slow
         String location_code = "";
         location_code = location_code + String.format("%8s", Integer.toBinaryString(loc.x)).replace(' ', '0');
@@ -297,7 +284,7 @@ public abstract class Robot {
                     for (int i = START_INDEX_ENEMY_HQS; i < START_INDEX_ENEMY_HQS + MAX_HQS; i++) {
                         int read = rc.readSharedArray(i);
                         if (read == 0) { // we found an empty spot!
-                            System.out.println("Writing HQ from " + decode_hq_location(m) + " to index " + i);
+                            System.out.println("Writing " + m + " for HQ from " + decode_hq_location(m) + " to index " + i);
                             rc.writeSharedArray(i, m);
                             break;
                         }
@@ -317,7 +304,7 @@ public abstract class Robot {
                     for (int i = START_INDEX_WELLS; i < START_INDEX_WELLS + MAX_WELLS; i++) {
                         int read = rc.readSharedArray(i);
                         if (read == 0) { // we found an empty spot!
-                            System.out.println("Writing " + decode_well_resourceType(m) + " well from " + decode_well_location(m) + " to index " + i);
+                            System.out.println("Writing " + m + " for "+ decode_well_resourceType(m) + " well from " + decode_well_location(m) + " to index " + i);
                             rc.writeSharedArray(i, m);
                             break;
                         }
@@ -328,5 +315,5 @@ public abstract class Robot {
         }
     }
 
-    // TODO: getNearestWell(resourceType)
+    // TODO: getNearestWell(resourceType), getClosestEnemyHQ, getClosestFriendlyHQ
 }
