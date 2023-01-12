@@ -266,6 +266,7 @@ public abstract class Robot {
                         }
                     }
                 }
+                hq_messages.clear();
             }
 
             if (!well_messages.isEmpty()){
@@ -283,6 +284,7 @@ public abstract class Robot {
                         }
                     }
                 }
+                well_messages.clear();
             }
         }
     }
