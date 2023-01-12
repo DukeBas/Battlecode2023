@@ -1,9 +1,7 @@
 package main.bots;
 
 import battlecode.common.*;
-import main.util.Constants;
-import main.util.Pathfinding;
-import main.util.SimplePathing;
+import main.util.*;
 
 import java.util.HashSet;
 import java.util.Random;
@@ -59,7 +57,7 @@ public abstract class Robot {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        pathfinding = new SimplePathing(rc);
+        pathfinding = new BugPathing(rc);
 
         hq_messages = new HashSet<>();
         well_messages = new HashSet<>();
