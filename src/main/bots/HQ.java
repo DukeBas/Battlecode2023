@@ -42,15 +42,16 @@ public class HQ extends Robot {
                 break;
             default:
                 // Uncomment to try out how much bytecode something costs
-                int before = Clock.getBytecodeNum();
+                int before = Clock.getBytecodesLeft();
+                int turnCountStart = turnCount;
 
                 MapInfo[] infos = rc.senseNearbyMapInfos();
                 for (int i = 0; i < infos.length; i++){
                     rc.sensePassability(infos[i].getMapLocation());
                 }
 
-                int after = Clock.getBytecodeNum();
-                System.out.println("USED " + (before - after) + " BYTECODE");
+                int after = Clock.getBytecodesLeft();
+                System.out.println("USED " + (before - after) + " BYTECODE" + (turnCountStart != turnCount ? ", WENT OVER LIMIT!!!" : ""));
                 break;
         }
 
