@@ -5,6 +5,7 @@ import battlecode.world.Well;
 import main.util.Pathfinding;
 import main.util.SimplePathing;
 
+import java.util.HashSet;
 import java.util.Random;
 
 public abstract class Robot {
@@ -17,10 +18,16 @@ public abstract class Robot {
     Team enemy;
     MapLocation built_by;
     Pathfinding pathfinding;
-    // Number of turns this bot has been alive
-    static int turnCount = 0;
+
+
+    static int turnCount = 0; // Number of turns this bot has been alive
     static int MAX_WELLS = 16;
-    static int MAX_HQS = 4;
+    static int MAX_HQS = 4; // accounts only for one team, so max HQ 4 means 8 HQs in total on the map
+
+    // Sets that hold messages that we could not send before
+    HashSet<Integer> hq_messages;
+    HashSet<Integer> well_messages;
+
 
     /**
      * A random number generator.
@@ -42,6 +49,9 @@ public abstract class Robot {
             System.out.println(e);
         }
         pathfinding = new SimplePathing(rc);
+
+        hq_messages = new HashSet<>();
+        well_messages = new HashSet<>();
     }
 
     /**
@@ -130,7 +140,7 @@ public abstract class Robot {
 
     // Scan for interesting structures and store them
     // TODO: scan for islands
-    private void scan() throws GameActionException{
+    private void scan() throws GameActionException {
 
         // Scan for wells and store them
         WellInfo[] wells = rc.senseNearbyWells();
@@ -140,7 +150,7 @@ public abstract class Robot {
         }
 
         RobotInfo[] hqs = rc.senseNearbyRobots(rc.getLocation(), -1, enemy);
-        for (RobotInfo hq: hqs) {
+        for (RobotInfo hq : hqs) {
             if (hq.type == RobotType.HEADQUARTERS) {
                 int hq_code = encode_hq(hq);
                 store_hq_info(hq_code);
@@ -167,11 +177,11 @@ public abstract class Robot {
         String location_code = "";
         location_code = location_code + String.format("%7s", Integer.toBinaryString(loc.x)).replace(' ', '0');
         location_code = location_code + String.format("%7s", Integer.toBinaryString(loc.y)).replace(' ', '0');
-        return Integer.parseInt(resource_code+location_code, 2);
+        return Integer.parseInt(resource_code + location_code, 2);
     }
 
     // Get well location from the decimal code.
-    public MapLocation decode_well_location (Integer wellcode) {
+    public MapLocation decode_well_location(Integer wellcode) {
         String code_binary = String.format("%16s", Integer.toBinaryString(wellcode)).replace(' ', '0');
         int x = Integer.parseInt(code_binary.substring(2, 9), 2);
         int y = Integer.parseInt(code_binary.substring(9, 16), 2);
@@ -179,7 +189,7 @@ public abstract class Robot {
     }
 
     // Get well resource type from decimal code.
-    public ResourceType decode_well_resourceType (Integer wellcode) {
+    public ResourceType decode_well_resourceType(Integer wellcode) {
         String code_binary = String.format("%16s", Integer.toBinaryString(wellcode)).replace(' ', '0');
         int int_code = Integer.parseInt(code_binary.substring(0, 2), 2);
 
@@ -195,16 +205,16 @@ public abstract class Robot {
     }
 
     // Checks if wellcode is duplicate, and if not stores it.
-    private void store_well_info(Integer wellcode) throws GameActionException{
+    private void store_well_info(Integer wellcode) throws GameActionException {
         for (int i = 0; i < MAX_WELLS; i++) {
             int read = rc.readSharedArray(i);
             if (read == wellcode) {
-                break;
-            }
-            if (read == 0) {
-                rc.writeSharedArray(i, wellcode);
+                return;
             }
         }
+
+        // The entry does not exist yet, so save it
+        well_messages.add(wellcode);
     }
 
     // Encode hqinfo into integer, first 8 bits are x, second 8 bits are y
@@ -225,14 +235,56 @@ public abstract class Robot {
     }
 
     // Checks if hq_code is duplicate, and if not stores it.
-    private void store_hq_info(Integer hq_code) throws GameActionException{
-        for (int i = MAX_WELLS; i < MAX_WELLS+MAX_HQS; i++) {
+    private void store_hq_info(Integer hq_code) throws GameActionException {
+        for (int i = MAX_WELLS; i < MAX_WELLS + MAX_HQS; i++) {
             int read = rc.readSharedArray(i);
             if (read == hq_code) {
-                break;
+                return;
             }
-            if (read == 0) {
-                rc.writeSharedArray(i, hq_code);
+        }
+
+        // The entry does not exist yet, so save it
+        hq_messages.add(hq_code);
+
+    }
+
+    // Sends all outstanding messages, if it is possible
+    private void sendCommunicationBuffer() throws GameActionException {
+        if (rc.canWriteSharedArray(0, 0)) {
+            // We can send messages!
+
+            if (!hq_messages.isEmpty()){
+                // Remove an hq if we know it already
+                for (int i = MAX_WELLS; i < MAX_WELLS + MAX_HQS; i++) {
+                    int read = rc.readSharedArray(i);
+                    hq_messages.remove(read);
+                }
+                // Store enemy HQs
+                for (Integer m : hq_messages) {
+                    for (int i = MAX_WELLS; i < MAX_WELLS + MAX_HQS; i++) {
+                        int read = rc.readSharedArray(i);
+                        if (read == 0){ // we found an empty spot!
+                            rc.writeSharedArray(i, m);
+                        }
+                    }
+                }
+            }
+
+            if (!well_messages.isEmpty()){
+                // Remove an hq if we know it already
+                for (int i = 0; i < MAX_WELLS; i++) {
+                    int read = rc.readSharedArray(i);
+                    well_messages.remove(read);
+                }
+                // Store enemy HQs
+                for (Integer m : well_messages) {
+                    for (int i = 0; i < MAX_WELLS; i++) {
+                        int read = rc.readSharedArray(i);
+                        if (read == 0){ // we found an empty spot!
+                            rc.writeSharedArray(i, m);
+                        }
+                    }
+                }
             }
         }
     }
