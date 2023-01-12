@@ -112,7 +112,7 @@ public strictfp class RobotPlayer {
      */
     static void runHeadquarters(RobotController rc) throws GameActionException {
 
-        if(turnCount>250){
+        if(turnCount>200){
             rc.resign();
         }
 

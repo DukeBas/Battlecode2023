@@ -1,11 +1,6 @@
 package main.bots;
 
 import battlecode.common.*;
-import main.util.Constants;
-
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.LinkedList;
 
 import static first_bot.util.Constants.directions;
 
@@ -17,7 +12,8 @@ public class HQ extends Robot {
         ownLocation = rc.getLocation();
     }
 
-    boolean[][] test;
+    boolean[] test;
+    int mostBytecodeExtracted = -1;
 
     /**
      * This code is run once per turn (assuming we do not go over bytecode limits.)
@@ -52,7 +48,12 @@ public class HQ extends Robot {
                 extracted();
 
                 int after = Clock.getBytecodesLeft();
-                System.out.println("USED " + (before - after) + " BYTECODE" + (turnCountStart != turnCount ? ", WENT OVER LIMIT!!!" : ""));
+                int diff = before- after;
+//                System.out.println("USED " + diff + " BYTECODE" + (turnCountStart != turnCount ? ", WENT OVER LIMIT!!!" : ""));
+                if (diff>mostBytecodeExtracted){
+                    mostBytecodeExtracted = diff;
+                    System.out.println("new bytecode record :(  " + diff);
+                }
                 break;
         }
 
@@ -81,37 +82,125 @@ public class HQ extends Robot {
     }
 
     private void extracted() throws GameActionException {
+        // todo: optimize for map size instead of always just using 60 (max)
         MapLocation testLoc = ownLocation
                 .add(Direction.NORTHEAST)
                 .add(Direction.NORTHEAST)
                 .add(Direction.EAST);
+        rc.setIndicatorDot(testLoc, 255, 255, 255);
 
-        test = new boolean[61][61];
+        test = new boolean[3601];
+//        test = new boolean[61][61];
 
-//        LinkedList<MapLocation> queue = new LinkedList<>(); // todo custom linked list
-//        queue.add(testLoc);
-        // TODO check if having an initial capacity is smart
-        // todo custom hashset for locations
-//        HashSet<MapLocation> seen = new HashSet<>(70); // MapLocations can be compared easily
-//        seen.add(ownLocation);
-        test[ownLocation.x][ownLocation.y] = true;
+        test[60 * ownLocation.x + ownLocation.y] = true;
 
         // Start from own location and try two DFS', one right inclined and one left
         int max_depth = 8;
         MapLocation head = ownLocation;
 
+        // right inclined
         for (int i = max_depth; --i > 0; ) {
             Direction dirToTarget = head.directionTo(testLoc);
+
+            // Check if we found the goal
+            if (head.equals(testLoc)){
+//                System.out.println("Goal found in " + (max_depth - i) + " steps");
+                break;
+            }
+
+            MapLocation headAtStart = head;
+
             for (int j = 7; --j >= 0; ) {
-                dirToTarget = dirToTarget.rotateRight();
                 MapLocation next_possible_head = head.add(dirToTarget);
 
-                if (locationOnMap(next_possible_head) && rc.sensePassability(next_possible_head) && !rc.isLocationOccupied(next_possible_head)) {
-                    head = next_possible_head;
-                    break; // CHANGE
+                if (!locationOnMap(next_possible_head)) continue; // location out of bounds
+
+                if (!test[60 * next_possible_head.x + next_possible_head.y]){
+//                    System.out.println("Trying " + next_possible_head.toString());
+                    // set as seen so we don't revisit
+                    test[60 * next_possible_head.x + next_possible_head.y] = true;
+
+                    if (rc.canSenseLocation(next_possible_head) && rc.sensePassability(next_possible_head) && !rc.isLocationOccupied(next_possible_head)) {
+//                        System.out.println("OLD HEAD IS " + head.toString() + " and next HEAD is " + next_possible_head.toString());
+                        head = next_possible_head;
+                        rc.setIndicatorDot(head, 100, 150, 23);
+                        break;
+                    }
+                }
+
+                dirToTarget = dirToTarget.rotateRight();
+            }
+
+            // Check if we are stuck, just quit if we are
+            if (head.equals(headAtStart)){
+//                System.out.println("stuck right");
+                break;
+            }
+        }
+
+        //todo check bytecode used/left
+
+        // reset seen around start
+        for (int a = -1; a <= 1; a++){
+            for (int b = -1; b <= 1; b++){
+                if (a != 0 || b != 0){
+                    int new_x =ownLocation.x + a;
+                    int new_y =ownLocation.y + b;
+                    if (new_x >= 0 &&  new_x < rc.getMapWidth() && new_y >= 0 && new_y < rc.getMapHeight()){
+                        test[60 * new_x + new_y] = false;
+                    }
                 }
             }
         }
+
+
+        // left inclined
+        head = ownLocation;
+        for (int i = max_depth; --i > 0; ) {
+            Direction dirToTarget = head.directionTo(testLoc);
+
+            // Check if we found the goal
+            if (head.equals(testLoc)){
+//                System.out.println("Goal found in " + (max_depth - i) + " steps");
+                break;
+            }
+
+            MapLocation headAtStart = head;
+
+            for (int j = 7; --j >= 0; ) {
+                MapLocation next_possible_head = head.add(dirToTarget);
+
+                if (!locationOnMap(next_possible_head)) continue; // location out of bounds
+
+                if (!test[60 * next_possible_head.x + next_possible_head.y]){
+//                    System.out.println("Trying " + next_possible_head.toString());
+                    // set as seen so we don't revisit
+                    test[60 * next_possible_head.x + next_possible_head.y] = true;
+
+                    if (rc.canSenseLocation(next_possible_head) && rc.sensePassability(next_possible_head) && !rc.isLocationOccupied(next_possible_head)) {
+//                        System.out.println("OLD HEAD IS " + head.toString() + " and next HEAD is " + next_possible_head.toString());
+                        head = next_possible_head;
+                        rc.setIndicatorDot(head, 200, 50, 230);
+                        break;
+                    }
+                }
+
+                dirToTarget = dirToTarget.rotateLeft();
+            }
+
+            // Check if we are stuck, just quit if we are
+            if (head.equals(headAtStart)){
+//                System.out.println("stuck left");
+                return;
+            }
+        }
+    }
+
+    // TODO REMOVE
+    public boolean locationOnMap(MapLocation loc){
+        int x = loc.x;
+        int y = loc.y;
+        return x >= 0 &&  x < rc.getMapWidth() && y >= 0 && y < rc.getMapHeight();
     }
 
     public void tryToBuild(RobotType type) throws GameActionException {
