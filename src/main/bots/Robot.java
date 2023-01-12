@@ -35,7 +35,7 @@ public abstract class Robot {
      * import at the top of this file. Here, we *seed* the RNG with a constant number (6147); this makes sure
      * we get the same sequence of numbers every time this code is run. This is very useful for debugging!
      */
-    static final Random rng = new Random(6147);
+    static final Random rng = new Random(1234);
 
     public Robot(RobotController rc) {
         this.rc = rc;
@@ -72,17 +72,14 @@ public abstract class Robot {
                 // Oh no! It looks like we did something illegal in the Battlecode world. You should
                 // handle GameActionExceptions judiciously, in case unexpected events occur in the game
                 // world. Remember, uncaught exceptions cause your robot to explode!
-                System.out.println(ownType + " GameAction-Exception");
+                System.out.println(ownType + " GameAction-Exception: " + e.getMessage());
                 e.printStackTrace();
-
-                rc.setIndicatorString("G-E: " + e);
             } catch (Exception e) {
                 // Oh no! It looks like our code tried to do something bad. This isn't a
                 // GameActionException, so it's more likely to be a bug in our code.
-                System.out.println(ownType + " Generic-Exception");
+                System.out.println("--- BEGIN ERROR ---");
+                System.out.println(ownType + " " + e.getClass() + " " + e.getMessage());
                 e.printStackTrace();
-
-                rc.setIndicatorString(e.getStackTrace()[0].getMethodName() + " : " + e);
             } finally {
                 // Signify we've done everything we want to do, thereby ending our turn.
                 // This will make our code wait until the next turn, and then perform this loop again.
