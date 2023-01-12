@@ -18,8 +18,6 @@ public abstract class Robot {
     Pathfinding pathfinding;
 
 
-    static int turnCount = 0; // Number of turns this bot has been alive
-
 
     /*
         COMMUNICATION VARIABLES
@@ -107,10 +105,15 @@ public abstract class Robot {
      * @throws GameActionException if an illegal game action is performed.
      */
     private void _run() throws GameActionException {
-        turnCount++;
+        int turn = rc.getRoundNum();
         scan();
         sendCommunicationBuffer();
         this.run();
+
+        // Check if we went over bytecode limit last turn, i.e. could not complete a turn
+        if (turn != rc.getRoundNum()){
+            System.out.println("WENT OVER BYTECODE LIMIT!!!");
+        }
     }
 
     /**

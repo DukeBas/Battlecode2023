@@ -25,7 +25,7 @@ public class HQ extends Robot {
        /*
             HQ-specific Communication
         */
-        switch (turnCount) {
+        switch (rc.getRoundNum()) {
             case 1:
                 // Save our location to shared array
                 // Find an empty spot, save it there
