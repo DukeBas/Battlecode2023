@@ -184,12 +184,17 @@ public abstract class Robot {
     private int encode_well(WellInfo wellinfo) {
         String resource_code = "";
         ResourceType type = wellinfo.getResourceType();
-        if (type == ResourceType.ADAMANTIUM) {
-            resource_code = String.format("%2s", Integer.toBinaryString(1)).replace(' ', '0');
-        } else if (type == ResourceType.ELIXIR) {
-            resource_code = String.format("%2s", Integer.toBinaryString(2)).replace(' ', '0');
-        } else if (type == ResourceType.MANA) {
-            resource_code = String.format("%2s", Integer.toBinaryString(3)).replace(' ', '0');
+
+        switch (type) {
+            case ADAMANTIUM:
+                resource_code = String.format("%2s", Integer.toBinaryString(1)).replace(' ', '0');
+                break;
+            case ELIXIR:
+                resource_code = String.format("%2s", Integer.toBinaryString(2)).replace(' ', '0');
+                break;
+            case MANA:
+                resource_code = String.format("%2s", Integer.toBinaryString(3)).replace(' ', '0');
+                break;
         }
 
         MapLocation loc = wellinfo.getMapLocation();
@@ -213,13 +218,21 @@ public abstract class Robot {
         int int_code = Integer.parseInt(code_binary.substring(0, 2), 2);
 
         ResourceType type = null;
-        if (int_code == 1) {
-            type = ResourceType.ADAMANTIUM;
-        } else if (int_code == 2) {
-            type = ResourceType.ELIXIR;
-        } else if (int_code == 3) {
-            type = ResourceType.MANA;
+        switch (int_code) {
+            case 1:
+                type = ResourceType.ADAMANTIUM;
+                break;
+            case 2:
+                type = ResourceType.ELIXIR;
+                break;
+            case 3:
+                type = ResourceType.MANA;
+                break;
+            default:
+                type = ResourceType.NO_RESOURCE;
+                break;
         }
+
         return type;
     }
 
@@ -273,7 +286,7 @@ public abstract class Robot {
         if (rc.canWriteSharedArray(0, 0)) {
             // We can send messages!
 
-            if (!hq_messages.isEmpty()){
+            if (!hq_messages.isEmpty()) {
                 // Remove an hq if we know it already
                 for (int i = START_INDEX_ENEMY_HQS; i < START_INDEX_ENEMY_HQS + MAX_HQS; i++) {
                     int read = rc.readSharedArray(i);
@@ -283,7 +296,7 @@ public abstract class Robot {
                 for (Integer m : hq_messages) {
                     for (int i = START_INDEX_ENEMY_HQS; i < START_INDEX_ENEMY_HQS + MAX_HQS; i++) {
                         int read = rc.readSharedArray(i);
-                        if (read == 0){ // we found an empty spot!
+                        if (read == 0) { // we found an empty spot!
                             System.out.println("Writing HQ from " + decode_hq_location(m) + " to index " + i);
                             rc.writeSharedArray(i, m);
                             break;
@@ -293,7 +306,7 @@ public abstract class Robot {
                 hq_messages.clear();
             }
 
-            if (!well_messages.isEmpty()){
+            if (!well_messages.isEmpty()) {
                 // Remove an hq if we know it already
                 for (int i = START_INDEX_WELLS; i < START_INDEX_WELLS + MAX_WELLS; i++) {
                     int read = rc.readSharedArray(i);
@@ -303,8 +316,8 @@ public abstract class Robot {
                 for (Integer m : well_messages) {
                     for (int i = START_INDEX_WELLS; i < START_INDEX_WELLS + MAX_WELLS; i++) {
                         int read = rc.readSharedArray(i);
-                        if (read == 0){ // we found an empty spot!
-                            System.out.println("Writing " + decode_well_resourceType(m) +" well from " + decode_well_location(m) + " to index " + i);
+                        if (read == 0) { // we found an empty spot!
+                            System.out.println("Writing " + decode_well_resourceType(m) + " well from " + decode_well_location(m) + " to index " + i);
                             rc.writeSharedArray(i, m);
                             break;
                         }
@@ -314,4 +327,6 @@ public abstract class Robot {
             }
         }
     }
+
+    // TODO: getNearestWell(resourceType)
 }
