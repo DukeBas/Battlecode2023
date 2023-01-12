@@ -46,7 +46,7 @@ public abstract class Robot {
         try {
             this.built_by = getHQ();
         } catch (Exception e) {
-            System.out.println(e);
+            e.printStackTrace();
         }
         pathfinding = new SimplePathing(rc);
 
@@ -63,6 +63,7 @@ public abstract class Robot {
          * loop, we call Clock.yield(), signifying that we've done everything we want to do.
          */
 
+        //noinspection InfiniteLoopStatement
         while (true) {
             try {
                 // Execute 1 round of actions for this robot.
@@ -146,7 +147,7 @@ public abstract class Robot {
             store_well_info(well_code);
         }
 
-        RobotInfo[] hqs = rc.senseNearbyRobots(rc.getLocation(), -1, enemy);
+        RobotInfo[] hqs = rc.senseNearbyRobots(-1, enemy);
         for (RobotInfo hq : hqs) {
             if (hq.type == RobotType.HEADQUARTERS) {
                 int hq_code = encode_hq(hq);
