@@ -38,9 +38,19 @@ public class HQ extends Robot {
                 break;
             case 2:
                 // Try to figure out the symmetry of the map
-
+                // Reflection lines/middle of the map gives away info
                 break;
             default:
+                // Uncomment to try out how much bytecode something costs
+                int before = Clock.getBytecodeNum();
+
+                MapInfo[] infos = rc.senseNearbyMapInfos();
+                for (int i = 0; i < infos.length; i++){
+                    rc.sensePassability(infos[i].getMapLocation());
+                }
+
+                int after = Clock.getBytecodeNum();
+                System.out.println("USED " + (before - after) + " BYTECODE");
                 break;
         }
 
