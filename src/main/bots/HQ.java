@@ -95,7 +95,7 @@ public class HQ extends Robot {
         test[offsetToArrIndex(0,0)] = true;
 
         // Start from own location and try two DFS', one right inclined and one left
-        int max_depth = 12;
+        int max_depth = 8;
         MapLocation head = ownLocation;
         MapLocation offset = new MapLocation(0,0);
 
@@ -106,7 +106,7 @@ public class HQ extends Robot {
             // Check if we found the goal
             if (head.equals(testLoc)) {
 //                System.out.println("Goal found in " + (max_depth - i) + " steps");
-                break;
+                return;
             }
 
             boolean head_same = true;
@@ -144,6 +144,7 @@ public class HQ extends Robot {
         }
 
         //todo check bytecode used/left
+        //Todo use mapinfo for currents?
 
         // reset seen around start
         int width = rc.getMapWidth();
@@ -170,7 +171,7 @@ public class HQ extends Robot {
             // Check if we found the goal
             if (head.equals(testLoc)) {
 //                System.out.println("Goal found in " + (max_depth - i) + " steps");
-                break;
+                return;
             }
 
             boolean head_same = true;
