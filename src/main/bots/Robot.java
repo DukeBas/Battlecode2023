@@ -136,11 +136,12 @@ public abstract class Robot {
 
     // Get touching HQ location
     private MapLocation getHQ() throws GameActionException {
-        RobotInfo[] friendlies = rc.senseNearbyRobots(2, friendly);
+        RobotInfo[] friendlies = rc.senseNearbyRobots(8, friendly);
         MapLocation HQ = null;
         for (RobotInfo robot : friendlies) {
             if (robot.type == RobotType.HEADQUARTERS) {
                 HQ = robot.getLocation();
+                break;
             }
         }
         return HQ;
