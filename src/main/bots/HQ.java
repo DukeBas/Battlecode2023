@@ -44,7 +44,11 @@ public class HQ extends Robot {
                 // Uncomment to try out how much bytecode something costs
                 int before = Clock.getBytecodesLeft();
 
-                extracted();
+                MapLocation testLoc = ownLocation
+                        .add(Direction.NORTHEAST)
+                        .add(Direction.NORTHEAST)
+                        .add(Direction.EAST);
+                extracted(testLoc);
 
                 int after = Clock.getBytecodesLeft();
                 int diff = before - after;
@@ -81,17 +85,14 @@ public class HQ extends Robot {
         }
     }
 
-    private void extracted() throws GameActionException {
+    private Direction extracted(MapLocation target) throws GameActionException {
         // DFS FOR R^2 of 20
 
         // TODO: do not save seen, only save previous path?
         // TODO: add stack to be able to pop
 
-        MapLocation testLoc = ownLocation
-                .add(Direction.NORTHEAST)
-                .add(Direction.NORTHEAST)
-                .add(Direction.EAST);
-        rc.setIndicatorDot(testLoc, 255, 255, 255);
+
+        rc.setIndicatorDot(target, 255, 255, 255);
 
         test = new boolean[121];
 
@@ -101,15 +102,16 @@ public class HQ extends Robot {
         int max_depth = 8;
         MapLocation head = ownLocation;
         MapLocation offset = new MapLocation(0, 0);
+        MapLocation first = ownLocation;
 
         // right inclined
         for (int i = max_depth; --i > 0; ) {
-            Direction dirToTarget = head.directionTo(testLoc);
+            Direction dirToTarget = head.directionTo(target);
 
             // Check if we found the goal
-            if (head.distanceSquaredTo(testLoc) <= 2) {
+            if (head.distanceSquaredTo(target) <= 2) {
 //                System.out.println("Goal found in " + (max_depth - i) + " steps");
-                return;
+                return ownLocation.directionTo(first);
             }
 
             boolean head_same = true;
@@ -131,6 +133,12 @@ public class HQ extends Robot {
                         head = next_possible_head;
                         offset = offset.add(dirToTarget);
                         head_same = false;
+
+                        if (ownLocation.equals(first)){
+                            // Set first step
+                            first = head;
+                        }
+
                         rc.setIndicatorDot(head, 100, 150, 23);
                         break;
                     }
@@ -169,12 +177,12 @@ public class HQ extends Robot {
         head = ownLocation;
         offset = new MapLocation(0, 0);
         for (int i = max_depth; --i > 0; ) {
-            Direction dirToTarget = head.directionTo(testLoc);
+            Direction dirToTarget = head.directionTo(target);
 
             // Check if we found the goal
-            if (head.distanceSquaredTo(testLoc) <= 2) {
+            if (head.distanceSquaredTo(target) <= 2) {
 //                System.out.println("Goal found in " + (max_depth - i) + " steps");
-                return;
+                return ownLocation.directionTo(first);
             }
 
             boolean head_same = true;
@@ -196,6 +204,12 @@ public class HQ extends Robot {
                         head = next_possible_head;
                         head_same = false;
                         offset = offset.add(dirToTarget);
+
+                        if (ownLocation.equals(first)){
+                            // Set first step
+                            first = head;
+                        }
+
                         rc.setIndicatorDot(head, 200, 50, 230);
                         break;
                     }
@@ -207,9 +221,12 @@ public class HQ extends Robot {
             // Check if we are stuck, just quit if we are
             if (head_same) {
 //                System.out.println("stuck left");
-                return;
+                return Direction.CENTER;
             }
         }
+
+        // Goal was not reached :(
+        return Direction.CENTER;
     }
 
     private int offsetToArrIndex(int x, int y) {
