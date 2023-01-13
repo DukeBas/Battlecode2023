@@ -2,6 +2,8 @@ package main.bots;
 
 import battlecode.common.*;
 
+import java.util.LinkedList;
+
 import static first_bot.util.Constants.directions;
 
 public class HQ extends Robot {
@@ -83,9 +85,7 @@ public class HQ extends Robot {
 
     private void extracted() throws GameActionException {
         // DFS FOR R^2 of 20
-
-        // TODO: do not save seen, only save previous path?
-        // TODO: add stack to be able to pop
+        LinkedList<MapLocation> stack = new LinkedList<>();
 
         MapLocation testLoc = ownLocation
                 .add(Direction.NORTHEAST)
@@ -100,6 +100,8 @@ public class HQ extends Robot {
         // Start from own location and try two DFS', one right inclined and one left
         int max_depth = 8;
         MapLocation head = ownLocation;
+        stack.push(ownLocation);
+        stack.push(head);
         MapLocation offset = new MapLocation(0, 0);
 
         // right inclined
@@ -123,12 +125,16 @@ public class HQ extends Robot {
 
                 if (!test[offsetToArrIndex(current_offset.x, current_offset.y)]) {
 //                    System.out.println("Trying " + next_possible_head.toString());
-                    // set as seen so we don't revisit
-                    test[offsetToArrIndex(current_offset.x, current_offset.y)] = true;
 
                     if (rc.sensePassability(next_possible_head) && !rc.isLocationOccupied(next_possible_head)) {
-//                        System.out.println("OLD HEAD IS " + head.toString() + " and next HEAD is " + next_possible_head.toString());
+                        System.out.println("OLD HEAD IS " + head.toString() + " and next HEAD is " + next_possible_head.toString());
+
+                        // set as seen so we don't revisit
+                        test[offsetToArrIndex(current_offset.x, current_offset.y)] = true;
+
+                        // Move the head, add it to path so far
                         head = next_possible_head;
+                        stack.push(head);
                         offset = offset.add(dirToTarget);
                         head_same = false;
                         rc.setIndicatorDot(head, 100, 150, 23);
@@ -141,8 +147,16 @@ public class HQ extends Robot {
 
             // Check if we are stuck, just quit if we are
             if (head_same) {
-//                System.out.println("stuck right");
-                break;
+                // break if stuck at start
+                System.out.println("STUCK: OLD HEAD IS " + head.toString());
+                if (stack.isEmpty()) break;
+
+                stack.pop();
+
+                if (stack.isEmpty()) break;
+                head = stack.peek();
+                offset = new MapLocation(head.x - ownLocation.x, head.y - ownLocation.y);
+                System.out.println("STUCK: NEWWW HEAD IS " + head.toString());
             }
         }
 
