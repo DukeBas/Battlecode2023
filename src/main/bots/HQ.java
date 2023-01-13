@@ -76,12 +76,16 @@ public class HQ extends Robot {
         } else if (rc.canBuildAnchor(Anchor.STANDARD)) {
             // If we can build an anchor do it!
             rc.buildAnchor(Anchor.STANDARD);
-            rc.setIndicatorString("Building anchor! " + rc.getAnchor());
+            // TODO use acc. anchors
+            rc.setIndicatorString("Building anchor! Currently have" + rc.getNumAnchors(Anchor.STANDARD));
         }
     }
 
     private void extracted() throws GameActionException {
         // DFS FOR R^2 of 20
+
+        // TODO: do not save seen, only save previous path?
+        // TODO: add stack to be able to pop
 
         MapLocation testLoc = ownLocation
                 .add(Direction.NORTHEAST)
@@ -90,7 +94,6 @@ public class HQ extends Robot {
         rc.setIndicatorDot(testLoc, 255, 255, 255);
 
         test = new boolean[121];
-//        test = new boolean[61][61];
 
         test[offsetToArrIndex(0, 0)] = true;
 

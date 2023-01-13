@@ -18,7 +18,6 @@ public abstract class Robot {
     Pathfinding pathfinding;
 
 
-
     /*
         COMMUNICATION VARIABLES
      */
@@ -111,8 +110,9 @@ public abstract class Robot {
         this.run();
 
         // Check if we went over bytecode limit last turn, i.e. could not complete a turn
-        if (turn != rc.getRoundNum()){
-            System.out.println("WENT OVER BYTECODE LIMIT!!!");
+        if (turn != rc.getRoundNum()) {
+            rc.setIndicatorDot(rc.getLocation(), 123, 234, 10);
+            System.out.println("WENT OVER BYTECODE LIMIT!!! turn " + turn);
         }
     }
 
