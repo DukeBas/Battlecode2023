@@ -43,21 +43,16 @@ public class HQ extends Robot {
                 break;
             default:
                 // Uncomment to try out how much bytecode something costs
-                int before = Clock.getBytecodesLeft();
-
-                MapLocation testLoc = ownLocation
-                        .add(Direction.NORTHEAST)
-                        .add(Direction.NORTHEAST)
-                        .add(Direction.EAST);
-                pathfinding.getDirection(testLoc);
-
-                int after = Clock.getBytecodesLeft();
-                int diff = before - after;
-//                System.out.println("USED " + diff + " BYTECODE" + (turnCountStart != turnCount ? ", WENT OVER LIMIT!!!" : ""));
-                if (diff > mostBytecodeExtracted) {
-                    mostBytecodeExtracted = diff;
-                    System.out.println("new bytecode record :(  " + diff);
-                }
+//                int before = Clock.getBytecodesLeft();
+//
+//
+//                int after = Clock.getBytecodesLeft();
+//                int diff = before - after;
+////                System.out.println("USED " + diff + " BYTECODE" + (turnCountStart != turnCount ? ", WENT OVER LIMIT!!!" : ""));
+//                if (diff > mostBytecodeExtracted) {
+//                    mostBytecodeExtracted = diff;
+//                    System.out.println("new bytecode record :(  " + diff);
+//                }
                 break;
         }
 

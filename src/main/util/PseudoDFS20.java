@@ -77,7 +77,7 @@ public class PseudoDFS20 implements Pathfinding {
                             first = head;
                         }
 
-                        rc.setIndicatorDot(head, 100, 150, 23);
+//                        rc.setIndicatorDot(head, 100, 150, 23);
                         break;
                     }
                 }
@@ -148,7 +148,7 @@ public class PseudoDFS20 implements Pathfinding {
                             first = head;
                         }
 
-                        rc.setIndicatorDot(head, 200, 50, 230);
+//                        rc.setIndicatorDot(head, 200, 50, 230);
                         break;
                     }
                 }

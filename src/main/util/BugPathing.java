@@ -12,6 +12,7 @@ public class BugPathing implements Pathfinding {
     RobotController rc;
     int mapWidth;
     int mapHeight;
+    boolean prefer_right = true;
 
     public BugPathing(RobotController rc) {
         this.rc = rc;
@@ -35,14 +36,26 @@ public class BugPathing implements Pathfinding {
 
         // Location was not possible... try more and more to the right
         MapLocation next;
-        for (int i = 7; --i >= 0; ) {
-            dirToTarget = dirToTarget.rotateRight();
-            next = ownLocation.add(dirToTarget);
+        if (prefer_right){
+            for (int i = 7; --i >= 0; ) {
+                dirToTarget = dirToTarget.rotateRight();
+                next = ownLocation.add(dirToTarget);
 
-            if (locationOnMap(next) && rc.sensePassability(next) && !rc.isLocationOccupied(next)) {
-                return ownLocation.directionTo(next);
+                if (locationOnMap(next) && rc.sensePassability(next) && !rc.isLocationOccupied(next)) {
+                    return ownLocation.directionTo(next);
+                }
+            }
+        } else {
+            for (int i = 7; --i >= 0; ) {
+                dirToTarget = dirToTarget.rotateLeft();
+                next = ownLocation.add(dirToTarget);
+
+                if (locationOnMap(next) && rc.sensePassability(next) && !rc.isLocationOccupied(next)) {
+                    return ownLocation.directionTo(next);
+                }
             }
         }
+
 
         // We cannot move closer so just wait?
         rc.setIndicatorString("pathfinding done booboo, idk what do");
@@ -53,5 +66,10 @@ public class BugPathing implements Pathfinding {
         int x = loc.x;
         int y = loc.y;
         return x >= 0 && x < mapWidth && y >= 0 && y < mapHeight;
+    }
+
+    // Flips what way the bug pathing prefers
+    public void flipDirection(){
+        prefer_right = !prefer_right;
     }
 }

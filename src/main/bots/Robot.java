@@ -54,7 +54,18 @@ public abstract class Robot {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        pathfinding = new BugPathing(rc);
+
+        // Set the right pathfinding module for each bot
+        switch (rc.getType()){
+            case HEADQUARTERS:
+                // Doesn't need pathfinding..
+                break;
+            case LAUNCHER:
+                // Has higher than 20 range..
+                pathfinding = new BugPathing(rc);
+            default:
+                pathfinding = new CombinedPDFS20Bug(rc);
+        }
 
         hq_messages = new HashSet<>();
         well_messages = new HashSet<>();
