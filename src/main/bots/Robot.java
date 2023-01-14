@@ -221,7 +221,7 @@ public abstract class Robot {
 
     // Get well resource type from decimal code.
     public ResourceType decode_well_resourceType(Integer wellcode) {
-        int int_code =  (wellcode & 0b1100000000000000) >> 14;
+        int int_code = (wellcode & 0b1100000000000000) >> 14;
 
         ResourceType type;
         switch (int_code) {
@@ -276,20 +276,21 @@ public abstract class Robot {
         return closest;
     }
 
-    // Encode hqinfo into integer, first 8 bits are x, second 8 bits are y
+    // Encode hqinfo into integer, first 6 bits are x, second 6 bits are y
     int encode_HQ_location(MapLocation loc) {
-        // TODO: do without string operations as they are slow
-        String location_code = "";
-        location_code = location_code + String.format("%8s", Integer.toBinaryString(loc.x)).replace(' ', '0');
-        location_code = location_code + String.format("%8s", Integer.toBinaryString(loc.y)).replace(' ', '0');
-        return Integer.parseInt(location_code, 2);
+        int hq_code = 0;
+
+        hq_code += loc.x << 6;
+        hq_code += loc.y;
+
+        return hq_code;
     }
 
     // decode location of hq from integer num.
     public MapLocation decode_hq_location(Integer hq_code) {
-        String code_binary = String.format("%16s", Integer.toBinaryString(hq_code)).replace(' ', '0');
-        int x = Integer.parseInt(code_binary.substring(0, 8), 2);
-        int y = Integer.parseInt(code_binary.substring(8, 16), 2);
+        int x = (hq_code & 0b0000111111000000) >> 6;
+        int y = (hq_code & 0b0000000000111111);
+
         return new MapLocation(x, y);
     }
 
@@ -344,7 +345,7 @@ public abstract class Robot {
             }
 
             if (!well_messages.isEmpty()) {
-                // Remove an hq if we know it already
+                // Remove an HQ if we know it already
                 for (int i = START_INDEX_WELLS; i < START_INDEX_WELLS + MAX_WELLS; i++) {
                     int read = rc.readSharedArray(i);
                     well_messages.remove(read);
