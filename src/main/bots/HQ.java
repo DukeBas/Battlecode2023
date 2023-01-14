@@ -12,6 +12,7 @@ public class HQ extends Robot {
 
     MapLocation ownLocation;
     Map_helper map_helper;
+    MapLocation[] friendly_HQs;
 
     public HQ(RobotController rc) {
         super(rc);
@@ -43,10 +44,17 @@ public class HQ extends Robot {
                         break;
                     }
                 }
+
+                // Initialize symmetry variables
+                if (HQ_id == 0) {
+                    commSaveBool(Constants.Communication_bools.SYM_ROTATIONAL, true);
+                    commSaveBool(Constants.Communication_bools.SYM_VERTICAL, true);
+                    commSaveBool(Constants.Communication_bools.SYM_HORIZONTAL, true);
+                }
                 break;
             case 2:
                 // Own HQ locations & reflection lines/middle of the map gives away info
-                MapLocation[] friendly_HQs = getFriendlyHQLocations();
+                friendly_HQs = getFriendlyHQLocations();
                 int width = rc.getMapWidth();
                 int height = rc.getMapHeight();
 
@@ -60,11 +68,11 @@ public class HQ extends Robot {
                     MapLocation sym = map_helper.rotationalSymmetricLocation(hq);
                     if (rc.canSenseLocation(sym)) {
                         // It is in range!
-                        if (rc.canSenseRobotAtLocation(sym)){
+                        if (rc.canSenseRobotAtLocation(sym)) {
                             // There's a robot there ?!
                             // Is it an enemy HQ?
                             RobotInfo info = rc.senseRobotAtLocation(sym);
-                            if (info.team != enemy || info.type != RobotType.HEADQUARTERS){
+                            if (info.team != enemy || info.type != RobotType.HEADQUARTERS) {
                                 // Different robot type, so not possible
                                 rotational_possible = false;
                                 break;
@@ -78,8 +86,8 @@ public class HQ extends Robot {
                 }
 
                 // -> Map details
-                if (rotational_possible){
-                    int lower_y = height/2 - 1;
+                if (rotational_possible) {
+                    int lower_y = height / 2 - 1;
 
                     for (int j = width; --j >= 0; ) {
                         MapLocation lower = new MapLocation(j, lower_y);
@@ -149,7 +157,7 @@ public class HQ extends Robot {
                         }
                     }
 
-                    int lower_x = height/2 - 1;
+                    int lower_x = height / 2 - 1;
 
                     for (int j = width; --j >= 0; ) {
                         MapLocation lower = new MapLocation(lower_x, j);
@@ -220,7 +228,7 @@ public class HQ extends Robot {
                     }
                 }
 
-                if (!rotational_possible){
+                if (!rotational_possible) {
                     // We have disproven possibility of rotational symmetry here
                     System.out.println("DISPROVEN ROTATIONAL");
                     commSaveBool(Constants.Communication_bools.SYM_ROTATIONAL, false);
@@ -237,11 +245,11 @@ public class HQ extends Robot {
 //                    rc.setIndicatorDot(sym, 100, 123, 0);
                     if (rc.canSenseLocation(sym)) {
                         // It is in range!
-                        if (rc.canSenseRobotAtLocation(sym)){
+                        if (rc.canSenseRobotAtLocation(sym)) {
                             // There's a robot there ?!
                             // Is it an enemy HQ?
                             RobotInfo info = rc.senseRobotAtLocation(sym);
-                            if (info.team != enemy || info.type != RobotType.HEADQUARTERS){
+                            if (info.team != enemy || info.type != RobotType.HEADQUARTERS) {
                                 // Different robot type, so not possible
                                 vertical_possible = false;
                                 break;
@@ -255,18 +263,18 @@ public class HQ extends Robot {
                 }
 
                 // -> Map details
-                if (vertical_possible){
-                    int lower_y = height/2 - 1;
-                    int upper_y = lower_y+1 + (height % 2 != 0 ? 1 : 0); // Account for odd height
+                if (vertical_possible) {
+                    int lower_y = height / 2 - 1;
+                    int upper_y = lower_y + 1 + (height % 2 != 0 ? 1 : 0); // Account for odd height
 
-                    for (int j = width; --j >= 0; ){
+                    for (int j = width; --j >= 0; ) {
                         MapLocation lower = new MapLocation(j, lower_y);
                         MapLocation upper = new MapLocation(j, upper_y);
 
-                        if (rc.canSenseLocation(lower) && rc.canSenseLocation(upper)){
+                        if (rc.canSenseLocation(lower) && rc.canSenseLocation(upper)) {
                             // We can check the symmetry!!
-                            rc.setIndicatorDot(lower, 0,0,0);
-                            rc.setIndicatorDot(upper, 110,110,110);
+                            rc.setIndicatorDot(lower, 0, 0, 0);
+                            rc.setIndicatorDot(upper, 110, 110, 110);
 
                             MapInfo info_upper = rc.senseMapInfo(upper);
                             MapInfo info_lower = rc.senseMapInfo(lower);
@@ -274,7 +282,7 @@ public class HQ extends Robot {
                             if (info_upper.hasCloud() != info_lower.hasCloud() ||
                                     info_upper.isPassable() != info_lower.isPassable() ||
                                     info_upper.getCurrentDirection() != info_lower.getCurrentDirection()
-                            ){
+                            ) {
                                 // Tiles are different! This symmetry is not possible!
                                 vertical_possible = false;
                                 break;
@@ -296,12 +304,12 @@ public class HQ extends Robot {
                             WellInfo well_upper = rc.senseWell(upper);
                             WellInfo well_lower = rc.senseWell(lower);
 
-                            if (well_upper != null){
+                            if (well_upper != null) {
                                 // Upper tile has a well
 
                                 if (well_lower != null) {
                                     // Both have a well, are they the same type?
-                                    if (well_upper.getResourceType() != well_lower.getResourceType()){
+                                    if (well_upper.getResourceType() != well_lower.getResourceType()) {
                                         // Different resource types!!
                                         // Tiles are different! This symmetry is not possible!
                                         vertical_possible = false;
@@ -328,7 +336,7 @@ public class HQ extends Robot {
                     }
                 }
 
-                if (!vertical_possible){
+                if (!vertical_possible) {
                     // We have disproven possibility of vertical symmetry here
                     System.out.println("DISPROVEN VERTICAL");
                     commSaveBool(Constants.Communication_bools.SYM_VERTICAL, false);
@@ -347,11 +355,11 @@ public class HQ extends Robot {
 //                    rc.setIndicatorDot(sym, 120, 12, 200);
                     if (rc.canSenseLocation(sym)) {
                         // It is in range!
-                        if (rc.canSenseRobotAtLocation(sym)){
+                        if (rc.canSenseRobotAtLocation(sym)) {
                             // There's a robot there ?!
                             // Is it an enemy HQ?
                             RobotInfo info = rc.senseRobotAtLocation(sym);
-                            if (info.team != enemy || info.type != RobotType.HEADQUARTERS){
+                            if (info.team != enemy || info.type != RobotType.HEADQUARTERS) {
                                 // Different robot type, so not possible
                                 horizontal_possible = false;
                                 break;
@@ -365,18 +373,18 @@ public class HQ extends Robot {
                 }
 
                 // -> Map details
-                if (horizontal_possible){
-                    int left_x = width/2 - 1;
-                    int right_x = left_x+1 + (width % 2 != 0 ? 1 : 0); // Account for odd width
+                if (horizontal_possible) {
+                    int left_x = width / 2 - 1;
+                    int right_x = left_x + 1 + (width % 2 != 0 ? 1 : 0); // Account for odd width
 
-                    for (int j = width; --j >= 0; ){
+                    for (int j = width; --j >= 0; ) {
                         MapLocation left = new MapLocation(left_x, j);
                         MapLocation right = new MapLocation(right_x, j);
 
-                        if (rc.canSenseLocation(left) && rc.canSenseLocation(right)){
+                        if (rc.canSenseLocation(left) && rc.canSenseLocation(right)) {
                             // We can check the symmetry!!
-                            rc.setIndicatorDot(left, 200,200,0);
-                            rc.setIndicatorDot(right, 200,200,110);
+                            rc.setIndicatorDot(left, 200, 200, 0);
+                            rc.setIndicatorDot(right, 200, 200, 110);
 
                             MapInfo info_right = rc.senseMapInfo(right);
                             MapInfo info_left = rc.senseMapInfo(left);
@@ -384,7 +392,7 @@ public class HQ extends Robot {
                             if (info_right.hasCloud() != info_left.hasCloud() ||
                                     info_right.isPassable() != info_left.isPassable() ||
                                     info_right.getCurrentDirection() != info_left.getCurrentDirection()
-                            ){
+                            ) {
                                 // Tiles are different! This symmetry is not possible!
                                 horizontal_possible = false;
                                 break;
@@ -406,12 +414,12 @@ public class HQ extends Robot {
                             WellInfo well_left = rc.senseWell(left);
                             WellInfo well_right = rc.senseWell(right);
 
-                            if (well_left != null){
+                            if (well_left != null) {
                                 // Left tile has a well
 
                                 if (well_right != null) {
                                     // Both have a well, are they the same type?
-                                    if (well_left.getResourceType() != well_right.getResourceType()){
+                                    if (well_left.getResourceType() != well_right.getResourceType()) {
                                         // Different resource types!!
                                         // Tiles are different! This symmetry is not possible!
                                         horizontal_possible = false;
@@ -438,20 +446,59 @@ public class HQ extends Robot {
                     }
                 }
 
-                if (!horizontal_possible){
+                if (!horizontal_possible) {
                     // We have disproven possibility of horizontal symmetry here
                     System.out.println("DISPROVEN HORIZONTAL");
-                    commSaveBool(Constants.Communication_bools.SYM_VERTICAL, false);
+                    commSaveBool(Constants.Communication_bools.SYM_HORIZONTAL, false);
                 }
 
                 break;
             case 3:
-                if (HQ_id == 0){
+                if (HQ_id == 0) {
                     // Save enemy HQ locations, if we were able to figure it out already
-//                    System.out.println("TODO");
+                    boolean symm_rotational = commReadBool(Constants.Communication_bools.SYM_ROTATIONAL);
+                    boolean symm_vertical = commReadBool(Constants.Communication_bools.SYM_VERTICAL);
+                    boolean symm_horizontal = commReadBool(Constants.Communication_bools.SYM_HORIZONTAL);
+
+                    if ((symm_rotational ? 1 : 0) + (symm_vertical ? 1 : 0) + (symm_horizontal ? 1 : 0) == 1) {
+                        System.out.println("Exactly one symmetry left! Saving enemy HQ positions >:)");
+
+                        int index_offset = 0;
+                        if (symm_rotational) {
+                            // Map has rotational symmetry
+                            for (MapLocation hq : friendly_HQs) {
+                                MapLocation loc = map_helper.rotationalSymmetricLocation(hq);
+                                rc.setIndicatorDot(loc, 255, 0, 0);
+                                rc.writeSharedArray(START_INDEX_ENEMY_HQS + index_offset,
+                                        encode_HQ_location(loc));
+                                index_offset++;
+                            }
+
+                        } else if (symm_vertical) {
+                            // Map has vertical symmetry
+                            for (MapLocation hq : friendly_HQs) {
+                                MapLocation loc = map_helper.verticalSymmetricLocation(hq);
+                                rc.setIndicatorDot(loc, 255, 0, 0);
+                                rc.writeSharedArray(START_INDEX_ENEMY_HQS + index_offset,
+                                        encode_HQ_location(loc));
+                                index_offset++;
+                            }
+                        } else {
+                            // Map has horizontal symmetry
+                            for (MapLocation hq : friendly_HQs) {
+                                MapLocation loc = map_helper.horizontalSymmetricLocation(hq);
+                                rc.setIndicatorDot(loc, 255, 0, 0);
+                                rc.writeSharedArray(START_INDEX_ENEMY_HQS + index_offset,
+                                        encode_HQ_location(loc));
+                                index_offset++;
+                            }
+                        }
+                    } else {
+                        // TODO: save HQs that are the same over all symmetries
+                    }
                 }
 
-                // TODO: save HQs that are the same over all symmetries
+
             default:
                 //TODO: If at least one, but not all, enemy HQs have been found, check symmetry again on that
 
