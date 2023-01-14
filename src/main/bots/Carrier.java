@@ -51,6 +51,7 @@ public class Carrier extends Robot{
                 }
             }
         }
+
         if (rc.canTakeAnchor(built_by, Anchor.STANDARD)) {
             rc.takeAnchor(built_by, Anchor.STANDARD);
         } else if (get_resource_count() == MAX_RESOURCES) {

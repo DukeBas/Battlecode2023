@@ -129,8 +129,10 @@ local.properties
 .idea/**/dictionaries
 .idea/**/shelf
 
+.idea/inspectionProfiles/Project_Default.xml
+
 # AWS User-specific
-.idea/**/aws.xml
+.idea/in/aws.xml
 
 # Generated files
 .idea/**/contentModel.xml

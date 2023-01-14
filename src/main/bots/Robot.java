@@ -1,9 +1,7 @@
 package main.bots;
 
 import battlecode.common.*;
-import main.util.Constants;
-import main.util.Pathfinding;
-import main.util.SimplePathing;
+import main.util.*;
 
 import java.util.HashSet;
 import java.util.Random;
@@ -18,9 +16,6 @@ public abstract class Robot {
     Team enemy;
     MapLocation built_by;
     Pathfinding pathfinding;
-
-
-    static int turnCount = 0; // Number of turns this bot has been alive
 
 
     /*
@@ -59,7 +54,18 @@ public abstract class Robot {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        pathfinding = new SimplePathing(rc);
+
+        // Set the right pathfinding module for each bot
+        switch (rc.getType()){
+            case HEADQUARTERS:
+                // Doesn't need pathfinding..
+                break;
+            case LAUNCHER:
+                // Has higher than 20 range..
+                pathfinding = new BugPathing(rc);
+            default:
+                pathfinding = new CombinedPDFS20Bug(rc);
+        }
 
         hq_messages = new HashSet<>();
         well_messages = new HashSet<>();
@@ -109,10 +115,16 @@ public abstract class Robot {
      * @throws GameActionException if an illegal game action is performed.
      */
     private void _run() throws GameActionException {
-        turnCount++;
-        scan();
+        int turn = rc.getRoundNum();
         sendCommunicationBuffer();
         this.run();
+        scan();
+
+        // Check if we went over bytecode limit last turn, i.e. could not complete a turn
+        if (turn != rc.getRoundNum()) {
+            rc.setIndicatorDot(rc.getLocation(), 123, 234, 10);
+            System.out.println("WENT OVER BYTECODE LIMIT!!! turn " + turn);
+        }
     }
 
     /**
@@ -138,11 +150,12 @@ public abstract class Robot {
 
     // Get touching HQ location
     private MapLocation getHQ() throws GameActionException {
-        RobotInfo[] friendlies = rc.senseNearbyRobots(2, friendly);
+        RobotInfo[] friendlies = rc.senseNearbyRobots(8, friendly);
         MapLocation HQ = null;
         for (RobotInfo robot : friendlies) {
             if (robot.type == RobotType.HEADQUARTERS) {
                 HQ = robot.getLocation();
+                break;
             }
         }
         return HQ;

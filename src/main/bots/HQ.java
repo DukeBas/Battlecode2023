@@ -1,9 +1,7 @@
 package main.bots;
 
 import battlecode.common.*;
-import main.util.Constants;
-
-import java.util.Arrays;
+import main.util.PseudoDFS20;
 
 import static first_bot.util.Constants.directions;
 
@@ -13,7 +11,10 @@ public class HQ extends Robot {
     public HQ(RobotController rc) {
         super(rc);
         ownLocation = rc.getLocation();
+        pathfinding = new PseudoDFS20(rc);
     }
+
+    int mostBytecodeExtracted = -1;
 
     /**
      * This code is run once per turn (assuming we do not go over bytecode limits.)
@@ -25,7 +26,7 @@ public class HQ extends Robot {
        /*
             HQ-specific Communication
         */
-        switch (turnCount) {
+        switch (rc.getRoundNum()) {
             case 1:
                 // Save our location to shared array
                 // Find an empty spot, save it there
@@ -38,9 +39,20 @@ public class HQ extends Robot {
                 break;
             case 2:
                 // Try to figure out the symmetry of the map
-
+                // Reflection lines/middle of the map gives away info
                 break;
             default:
+                // Uncomment to try out how much bytecode something costs
+//                int before = Clock.getBytecodesLeft();
+//
+//
+//                int after = Clock.getBytecodesLeft();
+//                int diff = before - after;
+////                System.out.println("USED " + diff + " BYTECODE" + (turnCountStart != turnCount ? ", WENT OVER LIMIT!!!" : ""));
+//                if (diff > mostBytecodeExtracted) {
+//                    mostBytecodeExtracted = diff;
+//                    System.out.println("new bytecode record :(  " + diff);
+//                }
                 break;
         }
 
@@ -64,9 +76,11 @@ public class HQ extends Robot {
         } else if (rc.canBuildAnchor(Anchor.STANDARD)) {
             // If we can build an anchor do it!
             rc.buildAnchor(Anchor.STANDARD);
-            rc.setIndicatorString("Building anchor! " + rc.getAnchor());
+            // TODO use acc. anchors
+            rc.setIndicatorString("Building anchor! Currently have" + rc.getNumAnchors(Anchor.STANDARD));
         }
     }
+
 
     public void tryToBuild(RobotType type) throws GameActionException {
         // Try all directions to find one to build in

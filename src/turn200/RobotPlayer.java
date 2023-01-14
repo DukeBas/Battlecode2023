@@ -112,7 +112,7 @@ public strictfp class RobotPlayer {
      */
     static void runHeadquarters(RobotController rc) throws GameActionException {
 
-        if(turnCount>250){
+        if(turnCount>200){
             rc.resign();
         }
 
@@ -122,7 +122,7 @@ public strictfp class RobotPlayer {
         if (rc.canBuildAnchor(Anchor.STANDARD)) {
             // If we can build an anchor do it!
             rc.buildAnchor(Anchor.STANDARD);
-            rc.setIndicatorString("Building anchor! " + rc.getAnchor());
+            rc.setIndicatorString("Building anchor! " + rc.getNumAnchors(Anchor.STANDARD));
         }
         if (rng.nextBoolean()) {
             // Let's try to build a carrier.
