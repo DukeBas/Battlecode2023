@@ -213,7 +213,7 @@ public abstract class Robot {
 
     // Get well location from the decimal code.
     public MapLocation decode_well_location(Integer wellcode) {
-        int x = wellcode & 0b0011111110000000;
+        int x = (wellcode & 0b0011111110000000) >> 7;
         int y = wellcode & 0b0000000001111111;
 
         return new MapLocation(x, y);

@@ -50,9 +50,8 @@ public class Carrier extends Robot{
                 move_towards(dir);
             }
         }
-        int bytecodeLeftBefore = Clock.getBytecodesLeft();
+
         scan();
-        System.out.println("Code used: " + (bytecodeLeftBefore - Clock.getBytecodesLeft()) + " bytecode");
     }
 
     public void well_routine() throws GameActionException {
