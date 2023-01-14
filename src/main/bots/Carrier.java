@@ -115,10 +115,12 @@ public class Carrier extends Robot{
 
     @Override
     public void scan() throws GameActionException {
+        if (Clock.getBytecodesLeft() < 100) return; // Check if we are nearly out of bytecode
 
         // Scan for wells and store them
         WellInfo[] wells = rc.senseNearbyWells();
         for (WellInfo well : wells) {
+            if (Clock.getBytecodesLeft() < 400) return; // Check if we are nearly out of bytecode
             if (well.getResourceType() == resource && target_well != null) {
                 if (well.getMapLocation().distanceSquaredTo(rc.getLocation()) <= target_well.distanceSquaredTo(rc.getLocation())) {
                     target_well = well.getMapLocation();
@@ -130,6 +132,7 @@ public class Carrier extends Robot{
 
         RobotInfo[] hqs = rc.senseNearbyRobots(-1, enemy);
         for (RobotInfo hq : hqs) {
+            if (Clock.getBytecodesLeft() < 400) return; // Check if we are nearly out of bytecode
             if (hq.type == RobotType.HEADQUARTERS) {
                 int hq_code = encode_HQ_location(hq.getLocation());
                 store_hq_info(hq_code);

@@ -167,15 +167,19 @@ public abstract class Robot {
     // Scan for interesting structures and store them
     // TODO: scan for islands
     public void scan() throws GameActionException {
+        if (Clock.getBytecodesLeft() < 100) return; // Check if we are nearly out of bytecode
+
         // Scan for wells and store them
         WellInfo[] wells = rc.senseNearbyWells();
         for (WellInfo well : wells) {
             int well_code = encode_well(well);
+            if (Clock.getBytecodesLeft() < 200) return; // Check if we are nearly out of bytecode
             store_well_info(well_code);
         }
 
         RobotInfo[] hqs = rc.senseNearbyRobots(-1, enemy);
         for (RobotInfo hq : hqs) {
+            if (Clock.getBytecodesLeft() < 200) return; // Check if we are nearly out of bytecode
             if (hq.type == RobotType.HEADQUARTERS) {
                 int hq_code = encode_HQ_location(hq.getLocation());
                 store_hq_info(hq_code);
@@ -323,6 +327,8 @@ public abstract class Robot {
 
     // Sends all outstanding messages, if it is possible
     private void sendCommunicationBuffer() throws GameActionException {
+        if (Clock.getBytecodesLeft() < 400) return; // Check if we are nearly out of bytecode
+
         if (rc.canWriteSharedArray(0, 0)) {
             // We can send messages!
 
@@ -335,6 +341,8 @@ public abstract class Robot {
                 // Store enemy HQs
                 for (Integer m : hq_messages) {
                     for (int i = START_INDEX_ENEMY_HQS; i < START_INDEX_ENEMY_HQS + MAX_HQS; i++) {
+                        if (Clock.getBytecodesLeft() < 200) return; // Check if we are nearly out of bytecode
+
                         int read = rc.readSharedArray(i);
                         if (read == 0) { // we found an empty spot!
                             System.out.println("Writing " + m + " for HQ from " + decode_hq_location(m) + " to index " + i);
@@ -346,6 +354,8 @@ public abstract class Robot {
                 hq_messages.clear();
             }
 
+            if (Clock.getBytecodesLeft() < 400) return; // Check if we are nearly out of bytecode
+
             if (!well_messages.isEmpty()) {
                 // Remove an HQ if we know it already
                 for (int i = START_INDEX_WELLS; i < START_INDEX_WELLS + MAX_WELLS; i++) {
@@ -355,6 +365,8 @@ public abstract class Robot {
                 // Store enemy HQs
                 for (Integer m : well_messages) {
                     for (int i = START_INDEX_WELLS; i < START_INDEX_WELLS + MAX_WELLS; i++) {
+                        if (Clock.getBytecodesLeft() < 200) return; // Check if we are nearly out of bytecode
+
                         int read = rc.readSharedArray(i);
                         if (read == 0) { // we found an empty spot!
                             System.out.println("Writing " + m + " for " + decode_well_resourceType(m) + " well from " + decode_well_location(m) + " to index " + i);
@@ -477,6 +489,3 @@ public abstract class Robot {
     }
 
 }
-
-// TODO: getClosestFriendlyHQ
-
