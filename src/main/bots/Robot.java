@@ -213,16 +213,15 @@ public abstract class Robot {
 
     // Get well location from the decimal code.
     public MapLocation decode_well_location(Integer wellcode) {
-        String code_binary = String.format("%16s", Integer.toBinaryString(wellcode)).replace(' ', '0');
-        int x = Integer.parseInt(code_binary.substring(2, 9), 2);
-        int y = Integer.parseInt(code_binary.substring(9, 16), 2);
+        int x = wellcode & 0b0011111110000000;
+        int y = wellcode & 0b0000000001111111;
+
         return new MapLocation(x, y);
     }
 
     // Get well resource type from decimal code.
     public ResourceType decode_well_resourceType(Integer wellcode) {
-        String code_binary = String.format("%16s", Integer.toBinaryString(wellcode)).replace(' ', '0');
-        int int_code = Integer.parseInt(code_binary.substring(0, 2), 2);
+        int int_code =  (wellcode & 0b1100000000000000) >> 14;
 
         ResourceType type;
         switch (int_code) {
