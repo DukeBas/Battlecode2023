@@ -186,26 +186,29 @@ public abstract class Robot {
     // the next 7 bits correspond to x
     // the next 7 correspond to y
     public int encode_well(WellInfo wellinfo) {
-        String resource_code = "";
+        int well_code = 0;
         ResourceType type = wellinfo.getResourceType();
 
+        // encode type as first two bits
         switch (type) {
             case ADAMANTIUM:
-                resource_code = String.format("%2s", Integer.toBinaryString(1)).replace(' ', '0');
+                well_code += 1 << 14;
                 break;
             case ELIXIR:
-                resource_code = String.format("%2s", Integer.toBinaryString(2)).replace(' ', '0');
+                well_code += 2 << 14;
                 break;
             case MANA:
-                resource_code = String.format("%2s", Integer.toBinaryString(3)).replace(' ', '0');
+                well_code += 3 << 14;
                 break;
         }
 
         MapLocation loc = wellinfo.getMapLocation();
-        String location_code = "";
-        location_code = location_code + String.format("%7s", Integer.toBinaryString(loc.x)).replace(' ', '0');
-        location_code = location_code + String.format("%7s", Integer.toBinaryString(loc.y)).replace(' ', '0');
-        return Integer.parseInt(resource_code + location_code, 2);
+        // encode x as next 7 bits
+        well_code += loc.x << 7;
+        // encode y as last 7 bits
+        well_code += loc.y;
+
+        return well_code;
     }
 
     // Get well location from the decimal code.
