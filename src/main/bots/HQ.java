@@ -35,7 +35,8 @@ public class HQ extends Robot {
                 for (int i = START_INDEX_FRIENDLY_HQS; i < START_INDEX_FRIENDLY_HQS + MAX_HQS; i++) {
                     if (rc.readSharedArray(i) == 0) {
                         rc.writeSharedArray(i, encode_HQ_location(ownLocation));
-                        HQ_id = i;
+                        HQ_id = i - START_INDEX_FRIENDLY_HQS;
+                        System.out.println("HQ ID " + HQ_id);
                         break;
                     }
                 }
