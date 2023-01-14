@@ -50,7 +50,9 @@ public class HQ extends Robot {
                 // Own HQ locations & reflection lines/middle of the map gives away info
                 MapLocation[] friendly_HQs = getFriendlyHQLocations();
 
-                // Test for Rotational symmetry (180 deg around middle)
+                /*
+                 Test for Rotational symmetry (180 deg around middle)
+                 */
                 // -> HQs
                 boolean rotational_possible = true;
                 for (MapLocation hq : friendly_HQs) {
@@ -73,35 +75,10 @@ public class HQ extends Robot {
                             break;
                         }
                     }
-
-
-
-                    rc.setIndicatorDot(map_helper.rotationalSymmetricLocation(hq), 10, 10, 10);
                 }
 
-//                MapLocation t1 = new MapLocation(10,10);
-//                rc.setIndicatorDot(t1, 10, 10, 10);
-//                rc.setIndicatorDot(map_helper.rotationalSymmetricLocation(t1), 10, 10, 10);
-//
-//                MapLocation t2 = new MapLocation(21,11);
-//                rc.setIndicatorDot(t2, 110, 110, 110);
-//                rc.setIndicatorDot(map_helper.rotationalSymmetricLocation(t2), 110, 110, 110);
-//
-//                MapLocation t3 = new MapLocation(12,22);
-//                rc.setIndicatorDot(t3, 233, 10, 10);
-//                rc.setIndicatorDot(map_helper.rotationalSymmetricLocation(t3), 233, 10, 10);
-//
-//
-//                MapLocation t4 = new MapLocation(23,23);
-//                rc.setIndicatorDot(t4, 10, 233, 10);
-//                rc.setIndicatorDot(map_helper.rotationalSymmetricLocation(t4), 10, 233, 10);
-
-
-
-                // -> Map details
-                if (rotational_possible){
-
-                }
+                // -> Map details TODO
+//                if (rotational_possible){}
 
                 if (!rotational_possible){
                     // We have disproven possibility of rotational symmetry here
@@ -109,9 +86,81 @@ public class HQ extends Robot {
                     commSaveBool(Constants.Communication_bools.SYM_ROTATIONAL, false);
                 }
 
-                // Test for vertical symmetry (reflect in middle vertical line)
+                /*
+                 Test for vertical symmetry (reflect in middle vertical line)
+                 */
+                // -> HQs
+                boolean vertical_possible = true;
+                for (MapLocation hq : friendly_HQs) {
+                    // If we can see the symmetric version of a location, check if it has an HQ
+                    MapLocation sym = map_helper.verticalSymmetricLocation(hq);
+                    rc.setIndicatorDot(sym, 100, 123, 0);
+                    if (rc.canSenseLocation(sym)) {
+                        // It is in range!
+                        if (rc.canSenseRobotAtLocation(sym)){
+                            // There's a robot there ?!
+                            // Is it an enemy HQ?
+                            RobotInfo info = rc.senseRobotAtLocation(sym);
+                            if (info.team != enemy || info.type != RobotType.HEADQUARTERS){
+                                // Different robot type, so not possible
+                                vertical_possible = false;
+                                break;
+                            }
+                        } else {
+                            // No robot found there... this symmetry is not possible
+                            vertical_possible = false;
+                            break;
+                        }
+                    }
+                }
 
-                // Test for horizontal symmetry (reflect in middle horizontal line)
+                // -> Map details TODO
+//                if (vertical_possible){}
+
+                if (!vertical_possible){
+                    // We have disproven possibility of vertical symmetry here
+                    System.out.println("DISPROVEN VERTICAL");
+                    commSaveBool(Constants.Communication_bools.SYM_VERTICAL, false);
+                }
+
+
+
+                /*
+                 Test for horizontal symmetry (reflect in middle horizontal line)
+                 */
+                // -> HQs
+                boolean horizontal_possible = true;
+                for (MapLocation hq : friendly_HQs) {
+                    // If we can see the symmetric version of a location, check if it has an HQ
+                    MapLocation sym = map_helper.horizontalSymmetricLocation(hq);
+                    rc.setIndicatorDot(sym, 120, 12, 200);
+                    if (rc.canSenseLocation(sym)) {
+                        // It is in range!
+                        if (rc.canSenseRobotAtLocation(sym)){
+                            // There's a robot there ?!
+                            // Is it an enemy HQ?
+                            RobotInfo info = rc.senseRobotAtLocation(sym);
+                            if (info.team != enemy || info.type != RobotType.HEADQUARTERS){
+                                // Different robot type, so not possible
+                                horizontal_possible = false;
+                                break;
+                            }
+                        } else {
+                            // No robot found there... this symmetry is not possible
+                            horizontal_possible = false;
+                            break;
+                        }
+                    }
+                }
+
+                // -> Map details TODO
+//                if (vertical_possible){}
+
+                if (!horizontal_possible){
+                    // We have disproven possibility of horizontal symmetry here
+                    System.out.println("DISPROVEN VERTICAL");
+                    commSaveBool(Constants.Communication_bools.SYM_VERTICAL, false);
+                }
 
                 break;
             default:

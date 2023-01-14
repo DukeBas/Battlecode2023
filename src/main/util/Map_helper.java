@@ -15,4 +15,12 @@ public class Map_helper {
 
         return new MapLocation(rc.getMapWidth() - original.x - 1, rc.getMapHeight() - original.y - 1);
     }
+
+    public MapLocation verticalSymmetricLocation(MapLocation hq) {
+        return new MapLocation(hq.x, rc.getMapHeight() - hq.y - 1);
+    }
+
+    public MapLocation horizontalSymmetricLocation(MapLocation hq) {
+        return new MapLocation(rc.getMapWidth() - hq.x - 1, hq.y);
+    }
 }
