@@ -15,6 +15,6 @@ public class Booster extends Robot{
      */
     @Override
     void run() throws GameActionException {
-
+        scan();
     }
 }

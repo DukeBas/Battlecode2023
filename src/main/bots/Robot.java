@@ -119,7 +119,6 @@ public abstract class Robot {
         int turn = rc.getRoundNum();
         sendCommunicationBuffer();
         this.run();
-        scan();
 
         // Check if we went over bytecode limit last turn, i.e. could not complete a turn
         if (turn != rc.getRoundNum()) {
@@ -164,7 +163,7 @@ public abstract class Robot {
 
     // Scan for interesting structures and store them
     // TODO: scan for islands
-    private void scan() throws GameActionException {
+    public void scan() throws GameActionException {
 
         // Scan for wells and store them
         WellInfo[] wells = rc.senseNearbyWells();

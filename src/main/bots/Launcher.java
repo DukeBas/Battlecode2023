@@ -42,5 +42,6 @@ public class Launcher extends Robot{
         if (rc.canMove(dir)) {
             rc.move(dir);
         }
+        scan();
     }
 }
