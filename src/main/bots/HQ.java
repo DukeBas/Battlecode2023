@@ -95,8 +95,8 @@ public class HQ extends Robot {
 
                         if (rc.canSenseLocation(lower) && rc.canSenseLocation(other)) {
                             // We can check the symmetry!!
-                            rc.setIndicatorDot(lower, 0, 200, 0);
-                            rc.setIndicatorDot(other, 0, 200, 110);
+//                            rc.setIndicatorDot(lower, 0, 200, 0);
+//                            rc.setIndicatorDot(other, 0, 200, 110);
 
                             MapInfo info_other = rc.senseMapInfo(other);
                             MapInfo info_lower = rc.senseMapInfo(lower);
@@ -165,8 +165,8 @@ public class HQ extends Robot {
 
                         if (rc.canSenseLocation(lower) && rc.canSenseLocation(other)) {
                             // We can check the symmetry!!
-                            rc.setIndicatorDot(lower, 0, 0, 200);
-                            rc.setIndicatorDot(other, 0, 20, 200);
+//                            rc.setIndicatorDot(lower, 0, 0, 200);
+//                            rc.setIndicatorDot(other, 0, 20, 200);
 
                             MapInfo info_other = rc.senseMapInfo(other);
                             MapInfo info_lower = rc.senseMapInfo(lower);
@@ -273,8 +273,8 @@ public class HQ extends Robot {
 
                         if (rc.canSenseLocation(lower) && rc.canSenseLocation(upper)) {
                             // We can check the symmetry!!
-                            rc.setIndicatorDot(lower, 0, 0, 0);
-                            rc.setIndicatorDot(upper, 110, 110, 110);
+//                            rc.setIndicatorDot(lower, 0, 0, 0);
+//                            rc.setIndicatorDot(upper, 110, 110, 110);
 
                             MapInfo info_upper = rc.senseMapInfo(upper);
                             MapInfo info_lower = rc.senseMapInfo(lower);
@@ -383,8 +383,8 @@ public class HQ extends Robot {
 
                         if (rc.canSenseLocation(left) && rc.canSenseLocation(right)) {
                             // We can check the symmetry!!
-                            rc.setIndicatorDot(left, 200, 200, 0);
-                            rc.setIndicatorDot(right, 200, 200, 110);
+//                            rc.setIndicatorDot(left, 200, 200, 0);
+//                            rc.setIndicatorDot(right, 200, 200, 110);
 
                             MapInfo info_right = rc.senseMapInfo(right);
                             MapInfo info_left = rc.senseMapInfo(left);
