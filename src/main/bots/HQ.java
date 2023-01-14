@@ -73,7 +73,8 @@ public class HQ extends Robot {
          */
         if (rc.senseNearbyRobots(RobotType.HEADQUARTERS.visionRadiusSquared, friendly).length < 35) {
             // Let's try to build a carrier.
-            tryToBuild(RobotType.CARRIER);
+            // tryToBuild(RobotType.CARRIER);
+            build_carrier(ResourceType.ADAMANTIUM);
             // Let's try to build a launcher.
             tryToBuild(RobotType.LAUNCHER);
         } else if (rc.canBuildAnchor(Anchor.STANDARD)) {
@@ -109,5 +110,11 @@ public class HQ extends Robot {
         if (rc.canBuildRobot(type, buildLocation)) {
             rc.buildRobot(type, buildLocation);
         }
+    }
+
+    // Build carrier of certain resource type
+    void build_carrier(ResourceType type) throws GameActionException{
+        tryToBuild(RobotType.CARRIER);
+        assign_carrier(type, HQ_id);
     }
 }

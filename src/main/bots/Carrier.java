@@ -13,9 +13,15 @@ import static first_bot.util.Constants.directions;
 public class Carrier extends Robot{
 
     static int MAX_RESOURCES = 40;
+    ResourceType resource = null;
+    int HQ_id = -1;
 
-    public Carrier(RobotController rc) {
+    public Carrier(RobotController rc) throws GameActionException{
         super(rc);
+        HQ_id = get_HQ_id(built_by);
+        resource = decode_HQ_resource_assignment(HQ_id);
+        System.out.println("I AM CARRIER WITH GOAL " + resource.toString());
+        assign_carrier(ResourceType.NO_RESOURCE, HQ_id);
     }
 
     /**
@@ -67,7 +73,7 @@ public class Carrier extends Robot{
             }
         } else {
             // Resources not full, Pathfind to well
-            MapLocation nearest_well = get_nearest_well();
+            MapLocation nearest_well = sense_nearest_well();
             if (nearest_well == null || rc.getAnchor() != null) {
                 // Cant find well, move randomly
                 Direction dir = directions[rng.nextInt(directions.length)];
@@ -86,7 +92,7 @@ public class Carrier extends Robot{
         return rc.getResourceAmount(ResourceType.ADAMANTIUM) + rc.getResourceAmount(ResourceType.MANA) + rc.getResourceAmount(ResourceType.ELIXIR);
     }
 
-    public MapLocation get_nearest_well() throws GameActionException {
+    public MapLocation sense_nearest_well() throws GameActionException {
         // Find closest well
         MapLocation nearest_well = null;
         WellInfo[] wells = rc.senseNearbyWells();
@@ -94,7 +100,7 @@ public class Carrier extends Robot{
             if (wells.length != 0) {
                 for (WellInfo well : wells) {
                     int dist_to_well = well.getMapLocation().distanceSquaredTo(rc.getLocation());
-                    if (dist_to_well <= min_dist) {
+                    if (dist_to_well <= min_dist && well.getResourceType() == resource) {
                         min_dist = dist_to_well;
                         nearest_well = well.getMapLocation();
                     }
