@@ -77,8 +77,148 @@ public class HQ extends Robot {
                     }
                 }
 
-                // -> Map details TODO
-//                if (rotational_possible){}
+                // -> Map details
+                if (rotational_possible){
+                    int lower_y = height/2 - 1;
+
+                    for (int j = width; --j >= 0; ) {
+                        MapLocation lower = new MapLocation(j, lower_y);
+                        MapLocation other = map_helper.rotationalSymmetricLocation(lower);
+
+                        if (rc.canSenseLocation(lower) && rc.canSenseLocation(other)) {
+                            // We can check the symmetry!!
+                            rc.setIndicatorDot(lower, 0, 200, 0);
+                            rc.setIndicatorDot(other, 0, 200, 110);
+
+                            MapInfo info_other = rc.senseMapInfo(other);
+                            MapInfo info_lower = rc.senseMapInfo(lower);
+
+                            if (info_other.hasCloud() != info_lower.hasCloud() ||
+                                    info_other.isPassable() != info_lower.isPassable() ||
+                                    info_other.getCurrentDirection() != info_lower.getCurrentDirection()
+                            ) {
+                                // Tiles are different! This symmetry is not possible!
+                                rotational_possible = false;
+                                break;
+                            }
+
+                            // Check islands
+                            int island_other = rc.senseIsland(other);
+                            int island_lower = rc.senseIsland(lower);
+                            if (island_other > -1 && island_lower == -1 ||
+                                    island_other == -1 && island_lower > -1
+                            ) {
+                                // One has an island, the other doesn't
+                                // Tiles are different! This symmetry is not possible!
+                                rotational_possible = false;
+                                break;
+                            }
+
+                            // Lastly, check if they have a different well/no well
+                            WellInfo well_other = rc.senseWell(other);
+                            WellInfo well_lower = rc.senseWell(lower);
+
+                            if (well_other != null) {
+                                // Other tile has a well
+
+                                if (well_lower != null) {
+                                    // Both have a well, are they the same type?
+                                    if (well_other.getResourceType() != well_lower.getResourceType()) {
+                                        // Different resource types!!
+                                        // Tiles are different! This symmetry is not possible!
+                                        rotational_possible = false;
+                                        break;
+                                    }
+
+                                } else {
+                                    // Lower tile does NOT  have a well
+                                    // Tiles are different! This symmetry is not possible!
+                                    rotational_possible = false;
+                                    break;
+                                }
+                            } else {
+                                // Other tile does NOT have a well
+
+                                if (well_lower != null) {
+                                    // Lower tile does have a well
+                                    // Tiles are different! This symmetry is not possible!
+                                    rotational_possible = false;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+
+                    int lower_x = height/2 - 1;
+
+                    for (int j = width; --j >= 0; ) {
+                        MapLocation lower = new MapLocation(lower_x, j);
+                        MapLocation other = map_helper.rotationalSymmetricLocation(lower);
+
+                        if (rc.canSenseLocation(lower) && rc.canSenseLocation(other)) {
+                            // We can check the symmetry!!
+                            rc.setIndicatorDot(lower, 0, 0, 200);
+                            rc.setIndicatorDot(other, 0, 20, 200);
+
+                            MapInfo info_other = rc.senseMapInfo(other);
+                            MapInfo info_lower = rc.senseMapInfo(lower);
+
+                            if (info_other.hasCloud() != info_lower.hasCloud() ||
+                                    info_other.isPassable() != info_lower.isPassable() ||
+                                    info_other.getCurrentDirection() != info_lower.getCurrentDirection()
+                            ) {
+                                // Tiles are different! This symmetry is not possible!
+                                rotational_possible = false;
+                                break;
+                            }
+
+                            // Check islands
+                            int island_other = rc.senseIsland(other);
+                            int island_lower = rc.senseIsland(lower);
+                            if (island_other > -1 && island_lower == -1 ||
+                                    island_other == -1 && island_lower > -1
+                            ) {
+                                // One has an island, the other doesn't
+                                // Tiles are different! This symmetry is not possible!
+                                rotational_possible = false;
+                                break;
+                            }
+
+                            // Lastly, check if they have a different well/no well
+                            WellInfo well_other = rc.senseWell(other);
+                            WellInfo well_lower = rc.senseWell(lower);
+
+                            if (well_other != null) {
+                                // Other tile has a well
+
+                                if (well_lower != null) {
+                                    // Both have a well, are they the same type?
+                                    if (well_other.getResourceType() != well_lower.getResourceType()) {
+                                        // Different resource types!!
+                                        // Tiles are different! This symmetry is not possible!
+                                        rotational_possible = false;
+                                        break;
+                                    }
+
+                                } else {
+                                    // Lower tile does NOT  have a well
+                                    // Tiles are different! This symmetry is not possible!
+                                    rotational_possible = false;
+                                    break;
+                                }
+                            } else {
+                                // Other tile does NOT have a well
+
+                                if (well_lower != null) {
+                                    // Lower tile does have a well
+                                    // Tiles are different! This symmetry is not possible!
+                                    rotational_possible = false;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
 
                 if (!rotational_possible){
                     // We have disproven possibility of rotational symmetry here
