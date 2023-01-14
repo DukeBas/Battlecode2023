@@ -19,6 +19,28 @@ public class Launcher extends Robot{
      */
     @Override
     void run() throws GameActionException {
+        attack();
+
+        // Also try to move randomly.
+        Direction dir = directions[rng.nextInt(directions.length)];
+        if (rc.canMove(dir)) {
+            rc.move(dir);
+        }
+        scan();
+    }
+
+    public int get_number_of_launchers() throws GameActionException {
+        int count = 0;
+        RobotInfo[] robots = rc.senseNearbyRobots(3, friendly);
+        for (RobotInfo robot : robots) {
+            if (robot.getType() == RobotType.LAUNCHER) {
+                count++;
+            }
+        }
+        return count;
+    }
+
+    public void attack() throws GameActionException {
         // Try to attack someone
         int radius = rc.getType().actionRadiusSquared;
         Team opponent = rc.getTeam().opponent();
@@ -28,7 +50,7 @@ public class Launcher extends Robot{
         Arrays.sort(enemies, Comparator.comparingInt(o -> o.health));
 
         if (enemies.length > 0) {
-             MapLocation toAttack = enemies[0].location;
+                MapLocation toAttack = enemies[0].location;
 
 
             if (rc.canAttack(toAttack)) {
@@ -36,12 +58,5 @@ public class Launcher extends Robot{
                 rc.attack(toAttack);
             }
         }
-
-        // Also try to move randomly.
-        Direction dir = directions[rng.nextInt(directions.length)];
-        if (rc.canMove(dir)) {
-            rc.move(dir);
-        }
-        scan();
     }
 }
