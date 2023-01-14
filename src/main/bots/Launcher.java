@@ -11,9 +11,11 @@ public class Launcher extends Robot{
 
     MapLocation Hq_target = null;
     Boolean squad = false;
+    int HQ_id = -1;
 
     public Launcher(RobotController rc) throws GameActionException {
         super(rc);
+        HQ_id = get_HQ_id(built_by);
     }
 
     /**
@@ -25,7 +27,7 @@ public class Launcher extends Robot{
     void run() throws GameActionException {
         attack();
 
-        if (get_number_of_launchers() > 2 || squad) {
+        if (get_number_of_launchers() > 1 || squad) {
             squad = true;
             if (Hq_target == null) {
                 Hq_target = get_nearest_enemy_HQ();
@@ -39,7 +41,7 @@ public class Launcher extends Robot{
 
     public int get_number_of_launchers() throws GameActionException {
         int count = 0;
-        RobotInfo[] robots = rc.senseNearbyRobots(4, friendly);
+        RobotInfo[] robots = rc.senseNearbyRobots(5, friendly);
         for (RobotInfo robot : robots) {
             if (robot.getType() == RobotType.LAUNCHER) {
                 count++;

@@ -469,7 +469,6 @@ public abstract class Robot {
         return closest_hq;
     }
 
-
 }
 
 // TODO: getClosestFriendlyHQ
