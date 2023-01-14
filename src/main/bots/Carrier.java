@@ -1,19 +1,14 @@
 package main.bots;
 
 import battlecode.common.*;
-import main.util.Constants;
-
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
 
 import static first_bot.util.Constants.directions;
 
 public class Carrier extends Robot{
 
     static int MAX_RESOURCES = 40;
-    ResourceType resource = null;
-    int HQ_id = -1;
+    ResourceType resource;
+    int HQ_id;
     MapLocation target_well = null;
 
     public Carrier(RobotController rc) throws GameActionException{
@@ -55,6 +50,7 @@ public class Carrier extends Robot{
                 move_towards(dir);
             }
         }
+
         scan();
     }
 

@@ -58,7 +58,7 @@ public abstract class Robot {
         }
 
         // Set the right pathfinding module for each bot
-        switch (rc.getType()){
+        switch (rc.getType()) {
             case HEADQUARTERS:
                 // Doesn't need pathfinding..
                 break;
@@ -165,7 +165,6 @@ public abstract class Robot {
     // Scan for interesting structures and store them
     // TODO: scan for islands
     public void scan() throws GameActionException {
-
         // Scan for wells and store them
         WellInfo[] wells = rc.senseNearbyWells();
         for (WellInfo well : wells) {
@@ -254,7 +253,7 @@ public abstract class Robot {
         well_messages.add(wellcode);
     }
 
-    public MapLocation get_nearest_well(ResourceType type) throws GameActionException{
+    public MapLocation get_nearest_well(ResourceType type) throws GameActionException {
         MapLocation closest = null;
         int min_distance = Integer.MAX_VALUE;
         for (int i = START_INDEX_WELLS; i < START_INDEX_WELLS + MAX_WELLS; i++) {
@@ -294,9 +293,9 @@ public abstract class Robot {
 
     public MapLocation[] getFriendlyHQLocations() throws GameActionException {
         ArrayList<MapLocation> friendlyHQs = new ArrayList<>();
-        for (int i = START_INDEX_FRIENDLY_HQS; i < START_INDEX_FRIENDLY_HQS + MAX_HQS; i++){
+        for (int i = START_INDEX_FRIENDLY_HQS; i < START_INDEX_FRIENDLY_HQS + MAX_HQS; i++) {
             int read = rc.readSharedArray(i);
-            if (read != 0){
+            if (read != 0) {
                 friendlyHQs.add(decode_hq_location(read));
             }
         }
@@ -380,8 +379,9 @@ public abstract class Robot {
 
         // write back, if changed
         if (shared != updated) {
-    }            rc.writeSharedArray(RESERVED_SPOT_BOOLS, updated);
+            rc.writeSharedArray(RESERVED_SPOT_BOOLS, updated);
         }
+    }
 
 
     // Read a boolean from the shared array
@@ -391,9 +391,9 @@ public abstract class Robot {
         return 1 == ((shared >> index) & 1);
     }
 
-    ResourceType decode_HQ_resource_assignment(int HQ_id) throws GameActionException{
+    ResourceType decode_HQ_resource_assignment(int HQ_id) throws GameActionException {
         String hq_data = String.format("%16s", Integer.toBinaryString(rc.readSharedArray(START_INDEX_ROLE_ASSIGNMENT))).replace(' ', '0');
-        hq_data = hq_data.substring(4*HQ_id, 4*HQ_id+2);     
+        hq_data = hq_data.substring(4 * HQ_id, 4 * HQ_id + 2);
         ResourceType type = ResourceType.ADAMANTIUM;
         switch (hq_data) {
             case "01":
@@ -409,7 +409,7 @@ public abstract class Robot {
         return type;
     }
 
-    int get_HQ_id(MapLocation hq_location) throws GameActionException{
+    int get_HQ_id(MapLocation hq_location) throws GameActionException {
         int HQ_id = -1;
         for (int i = START_INDEX_FRIENDLY_HQS; i < START_INDEX_ENEMY_HQS; i++) {
             MapLocation current_hq_loc = decode_hq_location(rc.readSharedArray(i));
@@ -423,7 +423,7 @@ public abstract class Robot {
     // Each HQ gets 4 bits.
     // First two bits are to assign carriers
     // TODO: use second two bits to assign launchers
-    void assign_carrier(ResourceType type, int HQ_id) throws GameActionException{
+    void assign_carrier(ResourceType type, int HQ_id) throws GameActionException {
         String assignment = "";
         switch (type) {
             case NO_RESOURCE:
@@ -442,12 +442,12 @@ public abstract class Robot {
         //Adding bits for launcher assignment.
         assignment += "00";
 
-        Integer stored = rc.readSharedArray(START_INDEX_ROLE_ASSIGNMENT);
+        int stored = rc.readSharedArray(START_INDEX_ROLE_ASSIGNMENT);
         String current = String.format("%16s", Integer.toBinaryString(stored)).replace(' ', '0');
         StringBuffer buf = new StringBuffer(current);
-        buf.replace(4*HQ_id, 4*HQ_id+4, assignment); 
+        buf.replace(4 * HQ_id, 4 * HQ_id + 4, assignment);
         current = buf.toString();
-        
+
         rc.writeSharedArray(START_INDEX_ROLE_ASSIGNMENT, Integer.valueOf(current, 2));
     }
 

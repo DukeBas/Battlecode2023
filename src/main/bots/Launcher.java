@@ -40,8 +40,6 @@ public class Launcher extends Robot {
             }
         }
 
-        rc.setIndicatorString("Attack ready? " + rc.getActionCooldownTurns());
-
         scan();
     }
 
