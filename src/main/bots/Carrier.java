@@ -70,23 +70,23 @@ public class Carrier extends Robot{
     public void anchor_routine() throws GameActionException {
         // If I have an anchor singularly focus on getting it to the first island I see
         int[] islands = rc.senseNearbyIslands();
-        Set<MapLocation> islandLocs = new HashSet<>();
+        MapLocation island = null;
+        int min_dist = Integer.MAX_VALUE;
         for (int id : islands) {
             // Only add possible island if it is unclaimed
             if (rc.senseTeamOccupyingIsland(id) == Team.NEUTRAL) {
                 MapLocation[] thisIslandLocs = rc.senseNearbyIslandLocations(id);
-                islandLocs.addAll(Arrays.asList(thisIslandLocs));
-            }
-        }
-        if (islandLocs.size() > 0) {
-            MapLocation islandLocation = islandLocs.iterator().next();
-            rc.setIndicatorString("Moving my anchor towards " + islandLocation);
-            while (!rc.getLocation().equals(islandLocation)) {
-                Direction dir = rc.getLocation().directionTo(islandLocation);
-                if (rc.canMove(dir)) {
-                    rc.move(dir);
+                for (MapLocation island_loc : thisIslandLocs) {
+                    int distance = island_loc.distanceSquaredTo(rc.getLocation());
+                    if (distance < min_dist) {
+                        min_dist = distance;
+                        island = island_loc;
+                    }
                 }
             }
+        }
+        if (island != null) {
+            move_towards(island);
             if (rc.canPlaceAnchor()) {
                 rc.setIndicatorString("Huzzah, placed anchor!");
                 rc.placeAnchor();
