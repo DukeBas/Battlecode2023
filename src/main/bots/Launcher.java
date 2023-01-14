@@ -7,7 +7,7 @@ import java.util.Comparator;
 
 import static first_bot.util.Constants.directions;
 
-public class Launcher extends Robot{
+public class Launcher extends Robot {
 
     MapLocation Hq_target = null;
     Boolean squad = false;
@@ -56,16 +56,26 @@ public class Launcher extends Robot{
         Team opponent = rc.getTeam().opponent();
         RobotInfo[] enemies = rc.senseNearbyRobots(radius, opponent);
 
-        // Sort enemies by hp
-        Arrays.sort(enemies, Comparator.comparingInt(o -> o.health));
+//        // Sort enemies by hp
+//        Arrays.sort(enemies, Comparator.comparingInt(o -> o.health));
 
         if (enemies.length > 0) {
-                MapLocation toAttack = enemies[0].location;
+            RobotInfo toAttack = enemies[0];
+            int lowestHP = Integer.MAX_VALUE; // needs separate value as initial target might be HQ
 
+            for (RobotInfo r : enemies) {
+                if (r.getType() == RobotType.HEADQUARTERS) continue;
 
-            if (rc.canAttack(toAttack)) {
+                if (r.getHealth() < lowestHP){
+                    lowestHP = r.getHealth();
+                    toAttack = r;
+                }
+            }
+
+            MapLocation loc = toAttack.getLocation();
+            if (rc.canAttack(loc)) {
                 rc.setIndicatorString("Attacking");
-                rc.attack(toAttack);
+                rc.attack(loc);
             }
         }
     }
