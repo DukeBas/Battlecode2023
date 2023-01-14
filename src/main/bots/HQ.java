@@ -133,7 +133,7 @@ public class HQ extends Robot {
 
                             if (info_upper.hasCloud() != info_lower.hasCloud() ||
                                     info_upper.isPassable() != info_lower.isPassable() ||
-                                    info_upper.getCurrentDirection() != info_upper.getCurrentDirection()
+                                    info_upper.getCurrentDirection() != info_lower.getCurrentDirection()
                             ){
                                 // Tiles are different! This symmetry is not possible!
                                 vertical_possible = false;
@@ -224,8 +224,79 @@ public class HQ extends Robot {
                     }
                 }
 
-                // -> Map details TODO
-//                if (horizontal_possible){}
+                // -> Map details
+                if (horizontal_possible){
+                    int left_x = width/2 - 1;
+                    int right_x = left_x+1 + (width % 2 != 0 ? 1 : 0); // Account for odd width
+
+                    for (int j = width; --j >= 0; ){
+                        MapLocation left = new MapLocation(left_x, j);
+                        MapLocation right = new MapLocation(right_x, j);
+
+                        if (rc.canSenseLocation(left) && rc.canSenseLocation(right)){
+                            // We can check the symmetry!!
+                            rc.setIndicatorDot(left, 200,200,0);
+                            rc.setIndicatorDot(right, 200,200,110);
+
+                            MapInfo info_right = rc.senseMapInfo(right);
+                            MapInfo info_left = rc.senseMapInfo(left);
+
+                            if (info_right.hasCloud() != info_left.hasCloud() ||
+                                    info_right.isPassable() != info_left.isPassable() ||
+                                    info_right.getCurrentDirection() != info_left.getCurrentDirection()
+                            ){
+                                // Tiles are different! This symmetry is not possible!
+                                horizontal_possible = false;
+                                break;
+                            }
+
+                            // Check islands
+                            int island_left = rc.senseIsland(left);
+                            int island_right = rc.senseIsland(right);
+                            if (island_left > -1 && island_right == -1 ||
+                                    island_left == -1 && island_right > -1
+                            ) {
+                                // One has an island, the other doesn't
+                                // Tiles are different! This symmetry is not possible!
+                                horizontal_possible = false;
+                                break;
+                            }
+
+                            // Lastly, check if they have a different well/no well
+                            WellInfo well_left = rc.senseWell(left);
+                            WellInfo well_right = rc.senseWell(right);
+
+                            if (well_left != null){
+                                // Left tile has a well
+
+                                if (well_right != null) {
+                                    // Both have a well, are they the same type?
+                                    if (well_left.getResourceType() != well_right.getResourceType()){
+                                        // Different resource types!!
+                                        // Tiles are different! This symmetry is not possible!
+                                        horizontal_possible = false;
+                                        break;
+                                    }
+
+                                } else {
+                                    // Right tile does NOT  have a well
+                                    // Tiles are different! This symmetry is not possible!
+                                    horizontal_possible = false;
+                                    break;
+                                }
+                            } else {
+                                // Left tile does NOT have a well
+
+                                if (well_right != null) {
+                                    // Right tile does have a well
+                                    // Tiles are different! This symmetry is not possible!
+                                    horizontal_possible = false;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
 
                 if (!horizontal_possible){
                     // We have disproven possibility of horizontal symmetry here
