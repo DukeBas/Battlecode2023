@@ -5,6 +5,8 @@ import main.util.Constants;
 import main.util.Map_helper;
 import main.util.PseudoDFS20;
 
+import java.util.HashSet;
+
 import static first_bot.util.Constants.directions;
 
 public class HQ extends Robot {
@@ -494,21 +496,64 @@ public class HQ extends Robot {
                             }
                         }
                     } else {
-                        // TODO Save HQs that are the same for left-over all symmetries
-//                        for (MapLocation hq : friendly_HQs) {
-//                            MapLocation loc_rot = map_helper.rotationalSymmetricLocation(hq);
-//                            MapLocation loc_ver = map_helper.verticalSymmetricLocation(hq);
-//                            MapLocation loc_hor = map_helper.horizontalSymmetricLocation(hq);
-//                            System.out.println(loc_r);
-//
-//                            if (loc_rot.equals(loc_ver) && loc_ver.equals(loc_hor)) {
-//                                rc.setIndicatorDot(loc_rot, 255, 0, 0);
-//                                rc.writeSharedArray(START_INDEX_ENEMY_HQS + index_offset,
-//                                        encode_HQ_location(loc_rot));
-//
-//                                index_offset++;
-//                            }
-//                        }
+                        // Save HQs that are the same for left-over all symmetries
+                        // TODO: Write more efficient version?
+
+                        HashSet<MapLocation> rot_set = null;
+                        if (symm_rotational) {
+                            rot_set = new HashSet<>();
+                            for (MapLocation hq : friendly_HQs) {
+                                rot_set.add(map_helper.rotationalSymmetricLocation(hq));
+                            }
+                        }
+                        HashSet<MapLocation> ver_set = null;
+                        if (symm_vertical) {
+                            ver_set = new HashSet<>();
+                            for (MapLocation hq : friendly_HQs) {
+                                ver_set.add(map_helper.verticalSymmetricLocation(hq));
+                            }
+                        }
+                        HashSet<MapLocation> hor_set = null;
+                        if (symm_horizontal) {
+                            hor_set = new HashSet<>();
+                            for (MapLocation hq : friendly_HQs) {
+                                hor_set.add(map_helper.horizontalSymmetricLocation(hq));
+                            }
+                        }
+
+                        // Either 2 or 3 possibilities left
+                        HashSet<MapLocation> overlap = null;
+                        if (rot_set != null && ver_set != null && hor_set != null) {
+                            // All of them left
+                            rot_set.retainAll(hor_set);
+                            rot_set.retainAll(ver_set);
+                            overlap = rot_set;
+                        } else {
+                            // Check which one isn't possible
+                            if (rot_set == null) {
+                                // Rotational wasn't possible
+                                hor_set.retainAll(ver_set);
+                                overlap = hor_set;
+                            }
+                            if (ver_set == null) {
+                                // Vertical wasn't possible
+                                rot_set.retainAll(hor_set);
+                                overlap = rot_set;
+                            }
+                            if (hor_set == null) {
+                                // Horizontal wasn't possible
+                                rot_set.retainAll(ver_set);
+                                overlap = rot_set;
+                            }
+                        }
+
+                        for (MapLocation hq : overlap) {
+                            rc.setIndicatorDot(hq, 255, 100, 0);
+                            rc.writeSharedArray(START_INDEX_ENEMY_HQS + index_offset,
+                                    encode_HQ_location(hq));
+                            index_offset++;
+
+                        }
                     }
                 }
 
@@ -588,7 +633,7 @@ public class HQ extends Robot {
     }
 
     // Build carrier of certain resource type
-    void build_carrier(ResourceType type) throws GameActionException{
+    void build_carrier(ResourceType type) throws GameActionException {
         tryToBuild(RobotType.CARRIER);
         assign_carrier(type, HQ_id);
     }
