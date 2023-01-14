@@ -186,7 +186,7 @@ public abstract class Robot {
     // first 2 bits correspond to resource
     // the next 7 bits correspond to x
     // the next 7 correspond to y
-    private int encode_well(WellInfo wellinfo) {
+    public int encode_well(WellInfo wellinfo) {
         String resource_code = "";
         ResourceType type = wellinfo.getResourceType();
 
@@ -242,7 +242,7 @@ public abstract class Robot {
     }
 
     // Checks if wellcode is duplicate, and if not stores it.
-    private void store_well_info(Integer wellcode) throws GameActionException {
+    public void store_well_info(Integer wellcode) throws GameActionException {
         for (int i = 0; i < MAX_WELLS; i++) {
             int read = rc.readSharedArray(i);
             if (read == wellcode) {
@@ -293,7 +293,7 @@ public abstract class Robot {
     }
 
     // Checks if hq_code is duplicate, and if not stores it.
-    private void store_hq_info(Integer hq_code) throws GameActionException {
+    public void store_hq_info(Integer hq_code) throws GameActionException {
         for (int i = MAX_WELLS; i < MAX_WELLS + MAX_HQS; i++) {
             int read = rc.readSharedArray(i);
             if (read == hq_code) {

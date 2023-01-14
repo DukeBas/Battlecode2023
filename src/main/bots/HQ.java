@@ -74,7 +74,11 @@ public class HQ extends Robot {
         if (rc.senseNearbyRobots(RobotType.HEADQUARTERS.visionRadiusSquared, friendly).length < 35) {
             // Let's try to build a carrier.
             // tryToBuild(RobotType.CARRIER);
-            build_carrier(ResourceType.MANA);
+            if (rng.nextBoolean()) {
+                build_carrier(ResourceType.MANA);
+            } else {
+                build_carrier(ResourceType.ADAMANTIUM);
+            }
             // Let's try to build a launcher.
             tryToBuild(RobotType.LAUNCHER);
         } else if (rc.canBuildAnchor(Anchor.STANDARD)) {

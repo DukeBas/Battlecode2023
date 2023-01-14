@@ -95,5 +95,26 @@ public class Carrier extends Robot{
     public int get_resource_count() {
         return rc.getResourceAmount(ResourceType.ADAMANTIUM) + rc.getResourceAmount(ResourceType.MANA) + rc.getResourceAmount(ResourceType.ELIXIR);
     }
+
+    private void scan() throws GameActionException {
+
+        // Scan for wells and store them
+        WellInfo[] wells = rc.senseNearbyWells();
+        for (WellInfo well : wells) {
+            if (well.getResourceType() == resource) {
+
+            }
+            int well_code = encode_well(well);
+            store_well_info(well_code);
+        }
+
+        RobotInfo[] hqs = rc.senseNearbyRobots(-1, enemy);
+        for (RobotInfo hq : hqs) {
+            if (hq.type == RobotType.HEADQUARTERS) {
+                int hq_code = encode_HQ_location(hq.getLocation());
+                store_hq_info(hq_code);
+            }
+        }
+    }
 }
 
