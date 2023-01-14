@@ -22,6 +22,8 @@ public class Launcher extends Robot {
     void run() throws GameActionException {
         attack();
 
+        rc.setIndicatorString("tes " + rc.isActionReady());
+
         // Only move if there is nothing to attack
         if (rc.isActionReady()) {
             if (get_number_of_launchers() > 1 || squad) {
@@ -30,16 +32,17 @@ public class Launcher extends Robot {
                     Hq_target = get_nearest_enemy_HQ();
                 }
                 if (Hq_target != null) {
+                    rc.setIndicatorString("Heading towards enemy HQ at " + Hq_target);
                     move_towards(Hq_target);
-                } else {
-                    rc.setIndicatorString("Could find target, very sad");
-                    int x = built_by.x < rc.getMapWidth()/2 ? built_by.x + 2 : built_by.x - 2;
-                    int y = built_by.y < rc.getMapHeight()/2 ? built_by.y + 2 : built_by.y - 2;
-                    rc.setIndicatorString(x + " " + y);
-                    move_towards(new MapLocation(x,y));
                 }
+            }
 
-
+            if (rc.isMovementReady()) {
+                rc.setIndicatorString("Could find target, very sad");
+                int x = built_by.x < rc.getMapWidth() / 2 ? built_by.x + 2 : built_by.x - 2;
+                int y = built_by.y < rc.getMapHeight() / 2 ? built_by.y + 2 : built_by.y - 2;
+                rc.setIndicatorString(x + " " + y);
+                move_towards(new MapLocation(x, y));
             }
 
             // Try to attack again now that we've moved
