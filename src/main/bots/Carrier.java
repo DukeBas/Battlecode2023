@@ -80,6 +80,7 @@ public class Carrier extends Robot{
                 }
             }
         }
+        scan();
     }
 
     public int get_resource_count() {

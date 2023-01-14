@@ -15,6 +15,6 @@ public class Amplifier extends Robot{
      */
     @Override
     void run() throws GameActionException {
-
+        scan();
     }
 }

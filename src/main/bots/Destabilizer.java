@@ -15,6 +15,6 @@ public class Destabilizer extends Robot{
      */
     @Override
     void run() throws GameActionException {
-
+        scan();
     }
 }
