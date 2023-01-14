@@ -31,36 +31,71 @@ public class Carrier extends Robot{
      */
     @Override
     void run() throws GameActionException {
-        if (rc.getAnchor() != null) {
-            // If I have an anchor singularly focus on getting it to the first island I see
-            int[] islands = rc.senseNearbyIslands();
-            Set<MapLocation> islandLocs = new HashSet<>();
-            for (int id : islands) {
-                // Only add possible island if it is unclaimed
-                if (rc.senseTeamOccupyingIsland(id) == Team.NEUTRAL) {
-                    MapLocation[] thisIslandLocs = rc.senseNearbyIslandLocations(id);
-                    islandLocs.addAll(Arrays.asList(thisIslandLocs));
-                }
-            }
-            if (islandLocs.size() > 0) {
-                MapLocation islandLocation = islandLocs.iterator().next();
-                rc.setIndicatorString("Moving my anchor towards " + islandLocation);
-                while (!rc.getLocation().equals(islandLocation)) {
-                    Direction dir = rc.getLocation().directionTo(islandLocation);
-                    if (rc.canMove(dir)) {
-                        rc.move(dir);
-                    }
-                }
-                if (rc.canPlaceAnchor()) {
-                    rc.setIndicatorString("Huzzah, placed anchor!");
-                    rc.placeAnchor();
-                }
-            }
-        }
 
         if (rc.canTakeAnchor(built_by, Anchor.STANDARD)) {
             rc.takeAnchor(built_by, Anchor.STANDARD);
+        }
+
+        if (rc.getAnchor() != null) {
+            // Have anchor, look for islands
+            anchor_routine();
         } else if (get_resource_count() == MAX_RESOURCES) {
+            // Resources full, head to HQ and deposit
+            hq_routine();
+        } else if (target_well != null) {
+            // Head to well and collect resources
+            well_routine();
+        } else {
+            // Assign target well
+            target_well = get_nearest_well(resource);
+            if (target_well != null) {
+                well_routine();
+            } else {
+                // Cant find well, move randomly
+                Direction dir = directions[rng.nextInt(directions.length)];
+                move_towards(dir);
+            }
+        }
+        scan();
+    }
+
+    public void well_routine() throws GameActionException {
+        if (rc.canCollectResource(target_well, 1)) {
+            rc.collectResource(target_well, -1);
+        } else {
+            move_towards(target_well);
+        }
+    }
+
+    public void anchor_routine() throws GameActionException {
+        // If I have an anchor singularly focus on getting it to the first island I see
+        int[] islands = rc.senseNearbyIslands();
+        Set<MapLocation> islandLocs = new HashSet<>();
+        for (int id : islands) {
+            // Only add possible island if it is unclaimed
+            if (rc.senseTeamOccupyingIsland(id) == Team.NEUTRAL) {
+                MapLocation[] thisIslandLocs = rc.senseNearbyIslandLocations(id);
+                islandLocs.addAll(Arrays.asList(thisIslandLocs));
+            }
+        }
+        if (islandLocs.size() > 0) {
+            MapLocation islandLocation = islandLocs.iterator().next();
+            rc.setIndicatorString("Moving my anchor towards " + islandLocation);
+            while (!rc.getLocation().equals(islandLocation)) {
+                Direction dir = rc.getLocation().directionTo(islandLocation);
+                if (rc.canMove(dir)) {
+                    rc.move(dir);
+                }
+            }
+            if (rc.canPlaceAnchor()) {
+                rc.setIndicatorString("Huzzah, placed anchor!");
+                rc.placeAnchor();
+            }
+        }
+    }
+
+    public void hq_routine() throws GameActionException{
+        if (get_resource_count() == MAX_RESOURCES) {
             // Resources full, Pathfind to HQ
             if (rc.canTransferResource(built_by, ResourceType.ADAMANTIUM, 1)) {
                 rc.transferResource(built_by, ResourceType.ADAMANTIUM, rc.getResourceAmount(ResourceType.ADAMANTIUM));
@@ -72,24 +107,7 @@ public class Carrier extends Robot{
                 move_towards(built_by);
             }
             target_well = null;
-        } else {
-            // Resources not full, Pathfind to well
-            if (target_well == null) {
-                target_well = get_nearest_well(resource);
-            }
-            if (target_well == null || rc.getAnchor() != null) {
-                // Cant find well, move randomly
-                Direction dir = directions[rng.nextInt(directions.length)];
-                move_towards(dir);
-            } else {
-                if (rc.canCollectResource(target_well, 1)) {
-                    rc.collectResource(target_well, -1);
-                } else {
-                    move_towards(target_well);
-                }
-            }
         }
-        scan();
     }
 
     public int get_resource_count() {
