@@ -21,7 +21,6 @@ public class Carrier extends Robot{
         super(rc);
         HQ_id = get_HQ_id(built_by);
         resource = decode_HQ_resource_assignment(HQ_id);
-        System.out.println("I AM CARRIER WITH GOAL " + resource.toString());
         assign_carrier(ResourceType.NO_RESOURCE, HQ_id);
     }
 
@@ -97,13 +96,16 @@ public class Carrier extends Robot{
         return rc.getResourceAmount(ResourceType.ADAMANTIUM) + rc.getResourceAmount(ResourceType.MANA) + rc.getResourceAmount(ResourceType.ELIXIR);
     }
 
-    private void scan() throws GameActionException {
+    @Override
+    public void scan() throws GameActionException {
 
         // Scan for wells and store them
         WellInfo[] wells = rc.senseNearbyWells();
         for (WellInfo well : wells) {
-            if (well.getResourceType() == resource) {
-
+            if (well.getResourceType() == resource && target_well != null) {
+                if (well.getMapLocation().distanceSquaredTo(rc.getLocation()) <= target_well.distanceSquaredTo(rc.getLocation())) {
+                    target_well = well.getMapLocation();
+                }
             }
             int well_code = encode_well(well);
             store_well_info(well_code);

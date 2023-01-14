@@ -382,7 +382,7 @@ public abstract class Robot {
     ResourceType decode_HQ_resource_assignment(int HQ_id) throws GameActionException{
         String hq_data = String.format("%16s", Integer.toBinaryString(rc.readSharedArray(START_INDEX_ROLE_ASSIGNMENT))).replace(' ', '0');
         hq_data = hq_data.substring(4*HQ_id, 4*HQ_id+2);     
-        ResourceType type = null;
+        ResourceType type = ResourceType.ADAMANTIUM;
         switch (hq_data) {
             case "01":
                 type = ResourceType.ADAMANTIUM;
