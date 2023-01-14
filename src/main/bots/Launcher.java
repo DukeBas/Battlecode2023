@@ -31,7 +31,15 @@ public class Launcher extends Robot {
                 }
                 if (Hq_target != null) {
                     move_towards(Hq_target);
+                } else {
+                    rc.setIndicatorString("Could find target, very sad");
+                    int x = built_by.x < rc.getMapWidth()/2 ? built_by.x + 2 : built_by.x - 2;
+                    int y = built_by.y < rc.getMapHeight()/2 ? built_by.y + 2 : built_by.y - 2;
+                    rc.setIndicatorString(x + " " + y);
+                    move_towards(new MapLocation(x,y));
                 }
+
+
             }
 
             // Try to attack again now that we've moved
