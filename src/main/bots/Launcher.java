@@ -2,16 +2,11 @@ package main.bots;
 
 import battlecode.common.*;
 
-import java.util.Arrays;
-import java.util.Comparator;
-
-import static first_bot.util.Constants.directions;
-
 public class Launcher extends Robot {
 
     MapLocation Hq_target = null;
     Boolean squad = false;
-    int HQ_id = -1;
+    int HQ_id;
 
     public Launcher(RobotController rc) throws GameActionException {
         super(rc);
@@ -27,15 +22,26 @@ public class Launcher extends Robot {
     void run() throws GameActionException {
         attack();
 
-        if (get_number_of_launchers() > 1 || squad) {
-            squad = true;
-            if (Hq_target == null) {
-                Hq_target = get_nearest_enemy_HQ();
+        // Only move if there is nothing to attack
+        if (rc.isActionReady()) {
+            if (get_number_of_launchers() > 1 || squad) {
+                squad = true;
+                if (Hq_target == null) {
+                    Hq_target = get_nearest_enemy_HQ();
+                }
+                if (Hq_target != null) {
+                    move_towards(Hq_target);
+                }
             }
-            if (Hq_target != null) {
-                move_towards(Hq_target);
+
+            // Try to attack again now that we've moved
+            if (rc.isActionReady()) {
+                attack();
             }
         }
+
+        rc.setIndicatorString("Attack ready? " + rc.getActionCooldownTurns());
+
         scan();
     }
 
@@ -64,9 +70,12 @@ public class Launcher extends Robot {
             int lowestHP = Integer.MAX_VALUE; // needs separate value as initial target might be HQ
 
             for (RobotInfo r : enemies) {
-                if (r.getType() == RobotType.HEADQUARTERS) continue;
+                RobotType type = r.getType();
+                if (type == RobotType.HEADQUARTERS) continue;
 
-                if (r.getHealth() < lowestHP){
+                if ((type == toAttack.type && r.getHealth() < lowestHP) ||
+                        (type == RobotType.LAUNCHER && toAttack.type != RobotType.LAUNCHER) ||
+                        toAttack.getType() == RobotType.HEADQUARTERS) {
                     lowestHP = r.getHealth();
                     toAttack = r;
                 }
