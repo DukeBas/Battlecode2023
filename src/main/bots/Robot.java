@@ -142,10 +142,12 @@ public abstract class Robot {
 
     // Move towards a Direction
     public void move_towards(Direction direction) throws GameActionException {
-        if (rc.canMove(direction)) {
-            rc.move(direction);
-        } else {
-            rc.setIndicatorString("oopsy doopsy, i cannot move " + direction.toString() + " there :(");
+        if (rc.isMovementReady()) {
+            if (rc.canMove(direction)) {
+                rc.move(direction);
+            } else {
+                rc.setIndicatorString("oopsy doopsy, i cannot move " + direction.toString() + " there :(");
+            }
         }
     }
 
