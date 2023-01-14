@@ -122,8 +122,8 @@ public class HQ extends Robot {
                     for (int j = width; --j >= 0; ){
                         MapLocation lower = new MapLocation(j, lower_y);
                         MapLocation upper = new MapLocation(j, upper_y);
-                        rc.setIndicatorDot(lower, 0,0,0);
-                        rc.setIndicatorDot(upper, 110,110,110);
+//                        rc.setIndicatorDot(lower, 0,0,0);
+//                        rc.setIndicatorDot(upper, 110,110,110);
 
                         if (rc.canSenseLocation(lower) && rc.canSenseLocation(upper)){
                             // We can check the symmetry!!
@@ -138,9 +138,41 @@ public class HQ extends Robot {
                                 vertical_possible = false;
                                 break;
                             }
+
+                            // Lastly, check if they have a different well/no well
+                            WellInfo well_upper = rc.senseWell(upper);
+                            WellInfo well_lower = rc.senseWell(lower);
+
+                            if (well_upper != null){
+                                // Upper tile has a well
+
+                                if (well_lower != null) {
+                                    // Both have a well, are they the same type?
+                                    if (well_upper.getResourceType() != well_lower.getResourceType()){
+                                        // Different resource types!!
+                                        // Tiles are different! This symmetry is not possible!
+                                        vertical_possible = false;
+                                        break;
+                                    }
+
+                                } else {
+                                    // Lower tile does NOT  have a well
+                                    // Tiles are different! This symmetry is not possible!
+                                    vertical_possible = false;
+                                    break;
+                                }
+                            } else {
+                                // Upper tile does NOT have a well
+
+                                if (well_lower != null) {
+                                    // Lower tile does have a well
+                                    // Tiles are different! This symmetry is not possible!
+                                    vertical_possible = false;
+                                    break;
+                                }
+                            }
                         }
                     }
-
                 }
 
                 if (!vertical_possible){
