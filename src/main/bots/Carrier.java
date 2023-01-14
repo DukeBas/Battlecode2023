@@ -13,9 +13,15 @@ import static first_bot.util.Constants.directions;
 public class Carrier extends Robot{
 
     static int MAX_RESOURCES = 40;
+    ResourceType resource = null;
+    int HQ_id = -1;
+    MapLocation target_well = null;
 
-    public Carrier(RobotController rc) {
+    public Carrier(RobotController rc) throws GameActionException{
         super(rc);
+        HQ_id = get_HQ_id(built_by);
+        resource = decode_HQ_resource_assignment(HQ_id);
+        assign_carrier(ResourceType.NO_RESOURCE, HQ_id);
     }
 
     /**
@@ -65,18 +71,21 @@ public class Carrier extends Robot{
             } else {
                 move_towards(built_by);
             }
+            target_well = null;
         } else {
             // Resources not full, Pathfind to well
-            MapLocation nearest_well = get_nearest_well();
-            if (nearest_well == null || rc.getAnchor() != null) {
+            if (target_well == null) {
+                target_well = get_nearest_well(resource);
+            }
+            if (target_well == null || rc.getAnchor() != null) {
                 // Cant find well, move randomly
                 Direction dir = directions[rng.nextInt(directions.length)];
                 move_towards(dir);
             } else {
-                if (rc.canCollectResource(nearest_well, 1)) {
-                    rc.collectResource(nearest_well, -1);
+                if (rc.canCollectResource(target_well, 1)) {
+                    rc.collectResource(target_well, -1);
                 } else {
-                    move_towards(nearest_well);
+                    move_towards(target_well);
                 }
             }
         }
@@ -87,23 +96,28 @@ public class Carrier extends Robot{
         return rc.getResourceAmount(ResourceType.ADAMANTIUM) + rc.getResourceAmount(ResourceType.MANA) + rc.getResourceAmount(ResourceType.ELIXIR);
     }
 
-    public MapLocation get_nearest_well() throws GameActionException {
-        // Find closest well
-        MapLocation nearest_well = null;
+    @Override
+    public void scan() throws GameActionException {
+
+        // Scan for wells and store them
         WellInfo[] wells = rc.senseNearbyWells();
-            int min_dist = Integer.MAX_VALUE;
-            if (wells.length != 0) {
-                for (WellInfo well : wells) {
-                    int dist_to_well = well.getMapLocation().distanceSquaredTo(rc.getLocation());
-                    if (dist_to_well <= min_dist) {
-                        min_dist = dist_to_well;
-                        nearest_well = well.getMapLocation();
-                    }
+        for (WellInfo well : wells) {
+            if (well.getResourceType() == resource && target_well != null) {
+                if (well.getMapLocation().distanceSquaredTo(rc.getLocation()) <= target_well.distanceSquaredTo(rc.getLocation())) {
+                    target_well = well.getMapLocation();
                 }
-            } else {
-                rc.setIndicatorString("I dont see any wells :(");
             }
-        return nearest_well;
+            int well_code = encode_well(well);
+            store_well_info(well_code);
+        }
+
+        RobotInfo[] hqs = rc.senseNearbyRobots(-1, enemy);
+        for (RobotInfo hq : hqs) {
+            if (hq.type == RobotType.HEADQUARTERS) {
+                int hq_code = encode_HQ_location(hq.getLocation());
+                store_hq_info(hq_code);
+            }
+        }
     }
 }
 

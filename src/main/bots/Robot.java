@@ -29,7 +29,8 @@ public abstract class Robot {
 
     // Indices for in the shared array
     static int RESERVED_SPOT_BOOLS = 0;
-    static int START_INDEX_FRIENDLY_HQS = RESERVED_SPOT_BOOLS + 1;
+    static int START_INDEX_ROLE_ASSIGNMENT = RESERVED_SPOT_BOOLS + 1;
+    static int START_INDEX_FRIENDLY_HQS = START_INDEX_ROLE_ASSIGNMENT + 1;
     static int START_INDEX_ENEMY_HQS = START_INDEX_FRIENDLY_HQS + MAX_HQS;
     static int START_INDEX_WELLS = START_INDEX_ENEMY_HQS + MAX_HQS;
 
@@ -184,7 +185,7 @@ public abstract class Robot {
     // first 2 bits correspond to resource
     // the next 7 bits correspond to x
     // the next 7 correspond to y
-    private int encode_well(WellInfo wellinfo) {
+    public int encode_well(WellInfo wellinfo) {
         String resource_code = "";
         ResourceType type = wellinfo.getResourceType();
 
@@ -240,7 +241,7 @@ public abstract class Robot {
     }
 
     // Checks if wellcode is duplicate, and if not stores it.
-    private void store_well_info(Integer wellcode) throws GameActionException {
+    public void store_well_info(Integer wellcode) throws GameActionException {
         for (int i = 0; i < MAX_WELLS; i++) {
             int read = rc.readSharedArray(i);
             if (read == wellcode) {
@@ -250,6 +251,27 @@ public abstract class Robot {
 
         // The entry does not exist yet, so save it
         well_messages.add(wellcode);
+    }
+
+    public MapLocation get_nearest_well(ResourceType type) throws GameActionException{
+        MapLocation closest = null;
+        int min_distance = Integer.MAX_VALUE;
+        for (int i = START_INDEX_WELLS; i < START_INDEX_WELLS + MAX_WELLS; i++) {
+            int info = rc.readSharedArray(i);
+            if (info == 0) {
+                return closest;
+            }
+
+            if (decode_well_resourceType(info) == type) {
+                MapLocation loc = decode_well_location(info);
+                int distance = loc.distanceSquaredTo(rc.getLocation());
+                if (distance < min_distance) {
+                    min_distance = distance;
+                    closest = loc;
+                }
+            }
+        }
+        return closest;
     }
 
     // Encode hqinfo into integer, first 8 bits are x, second 8 bits are y
@@ -270,7 +292,7 @@ public abstract class Robot {
     }
 
     // Checks if hq_code is duplicate, and if not stores it.
-    private void store_hq_info(Integer hq_code) throws GameActionException {
+    public void store_hq_info(Integer hq_code) throws GameActionException {
         for (int i = MAX_WELLS; i < MAX_WELLS + MAX_HQS; i++) {
             int read = rc.readSharedArray(i);
             if (read == hq_code) {
@@ -346,15 +368,75 @@ public abstract class Robot {
 
         // write back, if changed
         if (shared != updated) {
-            rc.writeSharedArray(RESERVED_SPOT_BOOLS, updated);
+    }            rc.writeSharedArray(RESERVED_SPOT_BOOLS, updated);
         }
-    }
+
 
     // Read a boolean from the shared array
     boolean commReadBool(Constants.Communication_bools type) throws GameActionException {
         int index = type.ordinal();
         int shared = rc.readSharedArray(RESERVED_SPOT_BOOLS);
         return 1 == ((shared >> index) & 1);
+    }
+
+    ResourceType decode_HQ_resource_assignment(int HQ_id) throws GameActionException{
+        String hq_data = String.format("%16s", Integer.toBinaryString(rc.readSharedArray(START_INDEX_ROLE_ASSIGNMENT))).replace(' ', '0');
+        hq_data = hq_data.substring(4*HQ_id, 4*HQ_id+2);     
+        ResourceType type = ResourceType.ADAMANTIUM;
+        switch (hq_data) {
+            case "01":
+                type = ResourceType.ADAMANTIUM;
+                break;
+            case "10":
+                type = ResourceType.ELIXIR;
+                break;
+            case "11":
+                type = ResourceType.MANA;
+                break;
+        }
+        return type;
+    }
+
+    int get_HQ_id(MapLocation hq_location) throws GameActionException{
+        int HQ_id = -1;
+        for (int i = START_INDEX_FRIENDLY_HQS; i < START_INDEX_ENEMY_HQS; i++) {
+            MapLocation current_hq_loc = decode_hq_location(rc.readSharedArray(i));
+            if (current_hq_loc.equals(hq_location)) {
+                HQ_id = i - START_INDEX_FRIENDLY_HQS;
+            }
+        }
+        return HQ_id;
+    }
+
+    // Each HQ gets 4 bits.
+    // First two bits are to assign carriers
+    // TODO: use second two bits to assign launchers
+    void assign_carrier(ResourceType type, int HQ_id) throws GameActionException{
+        String assignment = "";
+        switch (type) {
+            case NO_RESOURCE:
+                assignment = "00";
+                break;
+            case ADAMANTIUM:
+                assignment = "01";
+                break;
+            case ELIXIR:
+                assignment = "10";
+                break;
+            case MANA:
+                assignment = "11";
+                break;
+        }
+        //Adding bits for launcher assignment.
+        assignment += "00";
+
+        Integer stored = rc.readSharedArray(START_INDEX_ROLE_ASSIGNMENT);
+        String current = String.format("%16s", Integer.toBinaryString(stored)).replace(' ', '0');
+        StringBuffer buf = new StringBuffer(current);
+        buf.replace(4*HQ_id, 4*HQ_id+4, assignment); 
+        current = buf.toString();
+        
+        rc.writeSharedArray(START_INDEX_ROLE_ASSIGNMENT, Integer.valueOf(current, 2));
     }
 }
 

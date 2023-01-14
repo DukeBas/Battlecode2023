@@ -22,6 +22,6 @@ public class Constants {
     public enum Communication_bools {
         SYM_ROTATIONAL,
         SYM_HORIZONTAL,
-        SYM_VERTICAL
+        SYM_VERTICAL,
     }
 }
