@@ -1,10 +1,11 @@
 package main.bots;
 
 import battlecode.common.*;
-import battlecode.world.Well;
+import main.util.Constants;
 import main.util.Pathfinding;
 import main.util.SimplePathing;
 
+import java.util.HashSet;
 import java.util.Random;
 
 public abstract class Robot {
@@ -17,10 +18,27 @@ public abstract class Robot {
     Team enemy;
     MapLocation built_by;
     Pathfinding pathfinding;
-    // Number of turns this bot has been alive
-    static int turnCount = 0;
+
+
+    static int turnCount = 0; // Number of turns this bot has been alive
+
+
+    /*
+        COMMUNICATION VARIABLES
+     */
+    // Sets that hold messages that we could not send before
+    HashSet<Integer> hq_messages;
+    HashSet<Integer> well_messages;
     static int MAX_WELLS = 16;
-    static int MAX_HQS = 4;
+    static int MAX_HQS = 4; // accounts only for one team, so max HQ 4 means 8 HQs in total on the map
+
+    // Indices for in the shared array
+    static int RESERVED_SPOT_BOOLS = 0;
+    static int START_INDEX_FRIENDLY_HQS = RESERVED_SPOT_BOOLS + 1;
+    static int START_INDEX_ENEMY_HQS = START_INDEX_FRIENDLY_HQS + MAX_HQS;
+    static int START_INDEX_WELLS = START_INDEX_ENEMY_HQS + MAX_HQS;
+
+    // #numRESERVERD_SPOTS(=1) + MAX_HQS*2 + MAX_WELLS <= 64 !!!
 
     /**
      * A random number generator.
@@ -28,7 +46,7 @@ public abstract class Robot {
      * import at the top of this file. Here, we *seed* the RNG with a constant number (6147); this makes sure
      * we get the same sequence of numbers every time this code is run. This is very useful for debugging!
      */
-    static final Random rng = new Random(6147);
+    static final Random rng = new Random(1234);
 
     public Robot(RobotController rc) {
         this.rc = rc;
@@ -39,9 +57,12 @@ public abstract class Robot {
         try {
             this.built_by = getHQ();
         } catch (Exception e) {
-            System.out.println(e);
+            e.printStackTrace();
         }
         pathfinding = new SimplePathing(rc);
+
+        hq_messages = new HashSet<>();
+        well_messages = new HashSet<>();
     }
 
     /**
@@ -53,6 +74,7 @@ public abstract class Robot {
          * loop, we call Clock.yield(), signifying that we've done everything we want to do.
          */
 
+        //noinspection InfiniteLoopStatement
         while (true) {
             try {
                 // Execute 1 round of actions for this robot.
@@ -62,17 +84,14 @@ public abstract class Robot {
                 // Oh no! It looks like we did something illegal in the Battlecode world. You should
                 // handle GameActionExceptions judiciously, in case unexpected events occur in the game
                 // world. Remember, uncaught exceptions cause your robot to explode!
-                System.out.println(ownType + " GameAction-Exception");
+                System.out.println(ownType + " GameAction-Exception: " + e.getMessage());
                 e.printStackTrace();
-
-                rc.setIndicatorString("G-E: " + e);
             } catch (Exception e) {
                 // Oh no! It looks like our code tried to do something bad. This isn't a
                 // GameActionException, so it's more likely to be a bug in our code.
-                System.out.println(ownType + " Generic-Exception");
+                System.out.println("--- BEGIN ERROR ---");
+                System.out.println(ownType + " " + e.getClass() + " " + e.getMessage());
                 e.printStackTrace();
-
-                rc.setIndicatorString(e.getStackTrace()[0].getMethodName() + " : " + e);
             } finally {
                 // Signify we've done everything we want to do, thereby ending our turn.
                 // This will make our code wait until the next turn, and then perform this loop again.
@@ -91,8 +110,9 @@ public abstract class Robot {
      */
     private void _run() throws GameActionException {
         turnCount++;
-        this.run();
         scan();
+        sendCommunicationBuffer();
+        this.run();
     }
 
     /**
@@ -116,9 +136,9 @@ public abstract class Robot {
         }
     }
 
-    // Get HQ location
+    // Get touching HQ location
     private MapLocation getHQ() throws GameActionException {
-        RobotInfo friendlies[] = rc.senseNearbyRobots(2, friendly);
+        RobotInfo[] friendlies = rc.senseNearbyRobots(2, friendly);
         MapLocation HQ = null;
         for (RobotInfo robot : friendlies) {
             if (robot.type == RobotType.HEADQUARTERS) {
@@ -130,7 +150,7 @@ public abstract class Robot {
 
     // Scan for interesting structures and store them
     // TODO: scan for islands
-    private void scan() throws GameActionException{
+    private void scan() throws GameActionException {
 
         // Scan for wells and store them
         WellInfo[] wells = rc.senseNearbyWells();
@@ -139,10 +159,10 @@ public abstract class Robot {
             store_well_info(well_code);
         }
 
-        RobotInfo[] hqs = rc.senseNearbyRobots(rc.getLocation(), -1, enemy);
-        for (RobotInfo hq: hqs) {
+        RobotInfo[] hqs = rc.senseNearbyRobots(-1, enemy);
+        for (RobotInfo hq : hqs) {
             if (hq.type == RobotType.HEADQUARTERS) {
-                int hq_code = encode_hq(hq);
+                int hq_code = encode_HQ_location(hq.getLocation());
                 store_hq_info(hq_code);
             }
         }
@@ -155,62 +175,74 @@ public abstract class Robot {
     private int encode_well(WellInfo wellinfo) {
         String resource_code = "";
         ResourceType type = wellinfo.getResourceType();
-        if (type == ResourceType.ADAMANTIUM) {
-            resource_code = String.format("%2s", Integer.toBinaryString(1)).replace(' ', '0');
-        } else if (type == ResourceType.ELIXIR) {
-            resource_code = String.format("%2s", Integer.toBinaryString(2)).replace(' ', '0');
-        } else if (type == ResourceType.MANA) {
-            resource_code = String.format("%2s", Integer.toBinaryString(3)).replace(' ', '0');
+
+        switch (type) {
+            case ADAMANTIUM:
+                resource_code = String.format("%2s", Integer.toBinaryString(1)).replace(' ', '0');
+                break;
+            case ELIXIR:
+                resource_code = String.format("%2s", Integer.toBinaryString(2)).replace(' ', '0');
+                break;
+            case MANA:
+                resource_code = String.format("%2s", Integer.toBinaryString(3)).replace(' ', '0');
+                break;
         }
 
         MapLocation loc = wellinfo.getMapLocation();
         String location_code = "";
         location_code = location_code + String.format("%7s", Integer.toBinaryString(loc.x)).replace(' ', '0');
         location_code = location_code + String.format("%7s", Integer.toBinaryString(loc.y)).replace(' ', '0');
-        return Integer.parseInt(resource_code+location_code, 2);
+        return Integer.parseInt(resource_code + location_code, 2);
     }
 
     // Get well location from the decimal code.
-    public MapLocation decode_well_location (Integer wellcode) {
+    public MapLocation decode_well_location(Integer wellcode) {
         String code_binary = String.format("%16s", Integer.toBinaryString(wellcode)).replace(' ', '0');
         int x = Integer.parseInt(code_binary.substring(2, 9), 2);
         int y = Integer.parseInt(code_binary.substring(9, 16), 2);
-        MapLocation loc = new MapLocation(x, y);
-        return loc;
+        return new MapLocation(x, y);
     }
 
     // Get well resource type from decimal code.
-    public ResourceType decode_well_resourceType (Integer wellcode) {
+    public ResourceType decode_well_resourceType(Integer wellcode) {
         String code_binary = String.format("%16s", Integer.toBinaryString(wellcode)).replace(' ', '0');
         int int_code = Integer.parseInt(code_binary.substring(0, 2), 2);
 
-        ResourceType type = null;
-        if (int_code == 1) {
-            type = ResourceType.ADAMANTIUM;
-        } else if (int_code == 2) {
-            type = ResourceType.ELIXIR;
-        } else if (int_code == 3) {
-            type = ResourceType.MANA;
+        ResourceType type;
+        switch (int_code) {
+            case 1:
+                type = ResourceType.ADAMANTIUM;
+                break;
+            case 2:
+                type = ResourceType.ELIXIR;
+                break;
+            case 3:
+                type = ResourceType.MANA;
+                break;
+            default:
+                type = ResourceType.NO_RESOURCE;
+                break;
         }
+
         return type;
     }
 
     // Checks if wellcode is duplicate, and if not stores it.
-    private void store_well_info(Integer wellcode) throws GameActionException{
+    private void store_well_info(Integer wellcode) throws GameActionException {
         for (int i = 0; i < MAX_WELLS; i++) {
             int read = rc.readSharedArray(i);
             if (read == wellcode) {
-                break;
-            }
-            if (read == 0) {
-                rc.writeSharedArray(i, wellcode);
+                return;
             }
         }
+
+        // The entry does not exist yet, so save it
+        well_messages.add(wellcode);
     }
 
     // Encode hqinfo into integer, first 8 bits are x, second 8 bits are y
-    private int encode_hq(RobotInfo hq) {
-        MapLocation loc = hq.getLocation();
+    int encode_HQ_location(MapLocation loc) {
+        // TODO: do without string operations as they are slow
         String location_code = "";
         location_code = location_code + String.format("%8s", Integer.toBinaryString(loc.x)).replace(' ', '0');
         location_code = location_code + String.format("%8s", Integer.toBinaryString(loc.y)).replace(' ', '0');
@@ -222,20 +254,97 @@ public abstract class Robot {
         String code_binary = String.format("%16s", Integer.toBinaryString(hq_code)).replace(' ', '0');
         int x = Integer.parseInt(code_binary.substring(0, 8), 2);
         int y = Integer.parseInt(code_binary.substring(8, 16), 2);
-        MapLocation loc = new MapLocation(x, y);
-        return loc;
+        return new MapLocation(x, y);
     }
 
     // Checks if hq_code is duplicate, and if not stores it.
-    private void store_hq_info(Integer hq_code) throws GameActionException{
-        for (int i = MAX_WELLS; i < MAX_WELLS+MAX_HQS; i++) {
+    private void store_hq_info(Integer hq_code) throws GameActionException {
+        for (int i = MAX_WELLS; i < MAX_WELLS + MAX_HQS; i++) {
             int read = rc.readSharedArray(i);
             if (read == hq_code) {
-                break;
+                return;
             }
-            if (read == 0) {
-                rc.writeSharedArray(i, hq_code);
+        }
+
+        // The entry does not exist yet, so save it
+        hq_messages.add(hq_code);
+
+    }
+
+    // Sends all outstanding messages, if it is possible
+    private void sendCommunicationBuffer() throws GameActionException {
+        if (rc.canWriteSharedArray(0, 0)) {
+            // We can send messages!
+
+            if (!hq_messages.isEmpty()) {
+                // Remove an hq if we know it already
+                for (int i = START_INDEX_ENEMY_HQS; i < START_INDEX_ENEMY_HQS + MAX_HQS; i++) {
+                    int read = rc.readSharedArray(i);
+                    hq_messages.remove(read);
+                }
+                // Store enemy HQs
+                for (Integer m : hq_messages) {
+                    for (int i = START_INDEX_ENEMY_HQS; i < START_INDEX_ENEMY_HQS + MAX_HQS; i++) {
+                        int read = rc.readSharedArray(i);
+                        if (read == 0) { // we found an empty spot!
+                            System.out.println("Writing " + m + " for HQ from " + decode_hq_location(m) + " to index " + i);
+                            rc.writeSharedArray(i, m);
+                            break;
+                        }
+                    }
+                }
+                hq_messages.clear();
+            }
+
+            if (!well_messages.isEmpty()) {
+                // Remove an hq if we know it already
+                for (int i = START_INDEX_WELLS; i < START_INDEX_WELLS + MAX_WELLS; i++) {
+                    int read = rc.readSharedArray(i);
+                    well_messages.remove(read);
+                }
+                // Store enemy HQs
+                for (Integer m : well_messages) {
+                    for (int i = START_INDEX_WELLS; i < START_INDEX_WELLS + MAX_WELLS; i++) {
+                        int read = rc.readSharedArray(i);
+                        if (read == 0) { // we found an empty spot!
+                            System.out.println("Writing " + m + " for " + decode_well_resourceType(m) + " well from " + decode_well_location(m) + " to index " + i);
+                            rc.writeSharedArray(i, m);
+                            break;
+                        }
+                    }
+                }
+                well_messages.clear();
             }
         }
     }
+
+    // Save a boolean to the shared array
+    void commSaveBool(Constants.Communication_bools type, boolean b) throws GameActionException {
+        int index = type.ordinal();
+        int shared = rc.readSharedArray(RESERVED_SPOT_BOOLS);
+        int updated = shared;
+
+        if (b) {
+            // set bit at position index to 1
+            updated |= 1 << index;
+        } else {
+            // set bit at position index to 0
+            updated &= ~(1 << index);
+        }
+
+        // write back, if changed
+        if (shared != updated) {
+            rc.writeSharedArray(RESERVED_SPOT_BOOLS, updated);
+        }
+    }
+
+    // Read a boolean from the shared array
+    boolean commReadBool(Constants.Communication_bools type) throws GameActionException {
+        int index = type.ordinal();
+        int shared = rc.readSharedArray(RESERVED_SPOT_BOOLS);
+        return 1 == ((shared >> index) & 1);
+    }
 }
+
+// TODO: getNearestWell(resourceType), getClosestEnemyHQ, getClosestFriendlyHQ
+
