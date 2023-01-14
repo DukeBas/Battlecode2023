@@ -30,7 +30,7 @@ public class BugPathing implements Pathfinding {
         // Check if we can actually move to that spot
         MapLocation toMoveTo = ownLocation.add(dirToTarget);
 
-        if (locationOnMap(toMoveTo) && rc.sensePassability(toMoveTo) && !rc.isLocationOccupied(toMoveTo)) {
+        if (rc.canSenseLocation(toMoveTo) && rc.sensePassability(toMoveTo) && !rc.isLocationOccupied(toMoveTo)) {
             return dirToTarget;
         }
 
@@ -41,7 +41,7 @@ public class BugPathing implements Pathfinding {
                 dirToTarget = dirToTarget.rotateRight();
                 next = ownLocation.add(dirToTarget);
 
-                if (locationOnMap(next) && rc.sensePassability(next) && !rc.isLocationOccupied(next)) {
+                if (rc.canSenseLocation(next) && rc.sensePassability(next) && !rc.isLocationOccupied(next)) {
                     return ownLocation.directionTo(next);
                 }
             }
@@ -50,7 +50,7 @@ public class BugPathing implements Pathfinding {
                 dirToTarget = dirToTarget.rotateLeft();
                 next = ownLocation.add(dirToTarget);
 
-                if (locationOnMap(next) && rc.sensePassability(next) && !rc.isLocationOccupied(next)) {
+                if (rc.canSenseLocation(next) && rc.sensePassability(next) && !rc.isLocationOccupied(next)) {
                     return ownLocation.directionTo(next);
                 }
             }
@@ -60,12 +60,6 @@ public class BugPathing implements Pathfinding {
         // We cannot move closer so just wait?
         rc.setIndicatorString("pathfinding done booboo, idk what do");
         return Direction.CENTER;
-    }
-
-    public boolean locationOnMap(MapLocation loc) {
-        int x = loc.x;
-        int y = loc.y;
-        return x >= 0 && x < mapWidth && y >= 0 && y < mapHeight;
     }
 
     // Flips what way the bug pathing prefers
