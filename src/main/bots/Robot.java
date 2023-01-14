@@ -438,7 +438,26 @@ public abstract class Robot {
         
         rc.writeSharedArray(START_INDEX_ROLE_ASSIGNMENT, Integer.valueOf(current, 2));
     }
+
+    public get_nearest_enemy_HQ() {
+        MapLocation closest_hq = null;
+        int min_dist = Integer.MAX_VALUE;
+        for (int i = START_INDEX_ENEMY_HQS; i < START_INDEX_ENEMY_HQS + MAX_HQS; i++) {
+            int hq_code = rc.readSharedArray(i);
+            if (hq_code == 0) {
+                return closest_hq;
+            }
+            MapLocation hq_loc = decode_hq_location(hq_code);
+            int distance = hq_loc.distanceSquaredTo(rc.getLocation());
+            if (distance < min_dist) {
+                closest_hq = hq_loc;
+                min_dist = distance;
+            }
+        }
+        return closest_hq;
+    }
+
 }
 
-// TODO: getNearestWell(resourceType), getClosestEnemyHQ, getClosestFriendlyHQ
+// TODO: getClosestFriendlyHQ
 

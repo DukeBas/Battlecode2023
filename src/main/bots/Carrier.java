@@ -91,6 +91,10 @@ public class Carrier extends Robot{
                 rc.setIndicatorString("Huzzah, placed anchor!");
                 rc.placeAnchor();
             }
+        } else {
+            // Cant find well, move randomly
+            Direction dir = directions[rng.nextInt(directions.length)];
+            move_towards(dir);
         }
     }
 
