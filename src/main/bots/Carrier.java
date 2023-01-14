@@ -6,7 +6,6 @@ import main.util.Constants;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
-import main.util.SimplePathing;
 
 import static first_bot.util.Constants.directions;
 

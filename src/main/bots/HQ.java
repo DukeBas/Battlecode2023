@@ -122,11 +122,12 @@ public class HQ extends Robot {
                     for (int j = width; --j >= 0; ){
                         MapLocation lower = new MapLocation(j, lower_y);
                         MapLocation upper = new MapLocation(j, upper_y);
-//                        rc.setIndicatorDot(lower, 0,0,0);
-//                        rc.setIndicatorDot(upper, 110,110,110);
 
                         if (rc.canSenseLocation(lower) && rc.canSenseLocation(upper)){
                             // We can check the symmetry!!
+                            rc.setIndicatorDot(lower, 0,0,0);
+                            rc.setIndicatorDot(upper, 110,110,110);
+
                             MapInfo info_upper = rc.senseMapInfo(upper);
                             MapInfo info_lower = rc.senseMapInfo(lower);
 
@@ -134,6 +135,18 @@ public class HQ extends Robot {
                                     info_upper.isPassable() != info_lower.isPassable() ||
                                     info_upper.getCurrentDirection() != info_upper.getCurrentDirection()
                             ){
+                                // Tiles are different! This symmetry is not possible!
+                                vertical_possible = false;
+                                break;
+                            }
+
+                            // Check islands
+                            int island_upper = rc.senseIsland(upper);
+                            int island_lower = rc.senseIsland(lower);
+                            if (island_upper > -1 && island_lower == -1 ||
+                                    island_upper == -1 && island_lower > -1
+                            ) {
+                                // One has an island, the other doesn't
                                 // Tiles are different! This symmetry is not possible!
                                 vertical_possible = false;
                                 break;
@@ -212,16 +225,25 @@ public class HQ extends Robot {
                 }
 
                 // -> Map details TODO
-//                if (vertical_possible){}
+//                if (horizontal_possible){}
 
                 if (!horizontal_possible){
                     // We have disproven possibility of horizontal symmetry here
-                    System.out.println("DISPROVEN VERTICAL");
+                    System.out.println("DISPROVEN HORIZONTAL");
                     commSaveBool(Constants.Communication_bools.SYM_VERTICAL, false);
                 }
 
                 break;
+            case 3:
+                if (HQ_id == 0){
+                    // Save enemy HQ locations, if we were able to figure it out already
+//                    System.out.println("TODO");
+                }
+
+                // TODO: save HQs that are the same over all symmetries
             default:
+                //TODO: If at least one, but not all, enemy HQs have been found, check symmetry again on that
+
                 // Uncomment to try out how much bytecode something costs
 //                int before = Clock.getBytecodesLeft();
 //
