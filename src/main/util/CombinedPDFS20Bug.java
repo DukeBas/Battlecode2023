@@ -45,9 +45,6 @@ public class CombinedPDFS20Bug implements Pathfinding {
                     // Reset
                     turnStartedSeekingThisTarget = rc.getRoundNum();
                     // Change bug pathing mode
-                    rc.setIndicatorDot(rc.getLocation(), 0, 0, 0);
-                    rc.setIndicatorString("IVE HAD IT");
-                    System.out.println("FLIPPING DIRECTION");
                     bug.flipDirection();
                 }
             }

@@ -116,9 +116,9 @@ public abstract class Robot {
      */
     private void _run() throws GameActionException {
         int turn = rc.getRoundNum();
-        scan();
         sendCommunicationBuffer();
         this.run();
+        scan();
 
         // Check if we went over bytecode limit last turn, i.e. could not complete a turn
         if (turn != rc.getRoundNum()) {
