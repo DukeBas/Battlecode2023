@@ -5,8 +5,6 @@ import main.util.Constants;
 import main.util.Map_helper;
 import main.util.PseudoDFS20;
 
-import java.util.Arrays;
-
 import static first_bot.util.Constants.directions;
 
 public class HQ extends Robot {
@@ -49,6 +47,8 @@ public class HQ extends Robot {
             case 2:
                 // Own HQ locations & reflection lines/middle of the map gives away info
                 MapLocation[] friendly_HQs = getFriendlyHQLocations();
+                int width = rc.getMapWidth();
+                int height = rc.getMapHeight();
 
                 /*
                  Test for Rotational symmetry (180 deg around middle)
@@ -70,7 +70,7 @@ public class HQ extends Robot {
                                 break;
                             }
                         } else {
-                            // No robot found there... so rotational symmetry is not possible
+                            // No robot found there... so this symmetry is not possible
                             rotational_possible = false;
                             break;
                         }
@@ -94,7 +94,7 @@ public class HQ extends Robot {
                 for (MapLocation hq : friendly_HQs) {
                     // If we can see the symmetric version of a location, check if it has an HQ
                     MapLocation sym = map_helper.verticalSymmetricLocation(hq);
-                    rc.setIndicatorDot(sym, 100, 123, 0);
+//                    rc.setIndicatorDot(sym, 100, 123, 0);
                     if (rc.canSenseLocation(sym)) {
                         // It is in range!
                         if (rc.canSenseRobotAtLocation(sym)){
@@ -114,8 +114,34 @@ public class HQ extends Robot {
                     }
                 }
 
-                // -> Map details TODO
-//                if (vertical_possible){}
+                // -> Map details
+                if (vertical_possible){
+                    int lower_y = height/2 - 1;
+                    int upper_y = lower_y+1 + (height % 2 != 0 ? 1 : 0); // Account for odd height
+
+                    for (int j = width; --j >= 0; ){
+                        MapLocation lower = new MapLocation(j, lower_y);
+                        MapLocation upper = new MapLocation(j, upper_y);
+                        rc.setIndicatorDot(lower, 0,0,0);
+                        rc.setIndicatorDot(upper, 110,110,110);
+
+                        if (rc.canSenseLocation(lower) && rc.canSenseLocation(upper)){
+                            // We can check the symmetry!!
+                            MapInfo info_upper = rc.senseMapInfo(upper);
+                            MapInfo info_lower = rc.senseMapInfo(lower);
+
+                            if (info_upper.hasCloud() != info_lower.hasCloud() ||
+                                    info_upper.isPassable() != info_lower.isPassable() ||
+                                    info_upper.getCurrentDirection() != info_upper.getCurrentDirection()
+                            ){
+                                // Tiles are different! This symmetry is not possible!
+                                vertical_possible = false;
+                                break;
+                            }
+                        }
+                    }
+
+                }
 
                 if (!vertical_possible){
                     // We have disproven possibility of vertical symmetry here
@@ -133,7 +159,7 @@ public class HQ extends Robot {
                 for (MapLocation hq : friendly_HQs) {
                     // If we can see the symmetric version of a location, check if it has an HQ
                     MapLocation sym = map_helper.horizontalSymmetricLocation(hq);
-                    rc.setIndicatorDot(sym, 120, 12, 200);
+//                    rc.setIndicatorDot(sym, 120, 12, 200);
                     if (rc.canSenseLocation(sym)) {
                         // It is in range!
                         if (rc.canSenseRobotAtLocation(sym)){
