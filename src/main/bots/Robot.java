@@ -439,7 +439,7 @@ public abstract class Robot {
         rc.writeSharedArray(START_INDEX_ROLE_ASSIGNMENT, Integer.valueOf(current, 2));
     }
 
-    public get_nearest_enemy_HQ() {
+    public MapLocation get_nearest_enemy_HQ() throws GameActionException{
         MapLocation closest_hq = null;
         int min_dist = Integer.MAX_VALUE;
         for (int i = START_INDEX_ENEMY_HQS; i < START_INDEX_ENEMY_HQS + MAX_HQS; i++) {
