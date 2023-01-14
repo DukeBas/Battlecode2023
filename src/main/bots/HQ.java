@@ -608,24 +608,32 @@ public class HQ extends Robot {
 
 
     public void tryToBuild(RobotType type) throws GameActionException {
+        if (!rc.isActionReady()) return; // Do not even try to build if it's not possible
+
         // Try all directions to find one to build in
-        Direction dir = null;
+        Direction best_dir = Direction.CENTER;
+        int build_score = -999;
         for (Direction d : directions) {
             MapLocation loc = ownLocation.add(d);
             if (rc.canSenseLocation(loc) && !rc.isLocationOccupied(loc) && rc.sensePassability(loc)) {
-                // we can build on this spot!
-                dir = d;
-                break;
+                MapInfo info = rc.senseMapInfo(loc);
+                int score = (-(info.hasCloud() ? 2 : 0)) - (info.getCurrentDirection() != null ? 1 : 0);
+
+                // we can build on this spot! Is it better?
+                if (score > build_score) {
+                    build_score = score;
+                    best_dir = d;
+                }
             }
         }
 
         // TODO: base build direction on RobotType and situation
 
-        // Check if we have a valid spot to build in
-        if (dir == null) {
+        // Check if we have found a valid spot to build in
+        if (best_dir == Direction.CENTER) {
             return;
         }
-        MapLocation buildLocation = rc.getLocation().add(dir);
+        MapLocation buildLocation = rc.getLocation().add(best_dir);
 
         rc.setIndicatorString("Trying to build a " + type.toString());
         if (rc.canBuildRobot(type, buildLocation)) {
