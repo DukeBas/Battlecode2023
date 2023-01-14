@@ -460,10 +460,10 @@ public class HQ extends Robot {
                     boolean symm_vertical = commReadBool(Constants.Communication_bools.SYM_VERTICAL);
                     boolean symm_horizontal = commReadBool(Constants.Communication_bools.SYM_HORIZONTAL);
 
+                    int index_offset = 0;
                     if ((symm_rotational ? 1 : 0) + (symm_vertical ? 1 : 0) + (symm_horizontal ? 1 : 0) == 1) {
                         System.out.println("Exactly one symmetry left! Saving enemy HQ positions >:)");
 
-                        int index_offset = 0;
                         if (symm_rotational) {
                             // Map has rotational symmetry
                             for (MapLocation hq : friendly_HQs) {
@@ -494,7 +494,21 @@ public class HQ extends Robot {
                             }
                         }
                     } else {
-                        // TODO: save HQs that are the same over all symmetries
+                        // TODO Save HQs that are the same for left-over all symmetries
+//                        for (MapLocation hq : friendly_HQs) {
+//                            MapLocation loc_rot = map_helper.rotationalSymmetricLocation(hq);
+//                            MapLocation loc_ver = map_helper.verticalSymmetricLocation(hq);
+//                            MapLocation loc_hor = map_helper.horizontalSymmetricLocation(hq);
+//                            System.out.println(loc_r);
+//
+//                            if (loc_rot.equals(loc_ver) && loc_ver.equals(loc_hor)) {
+//                                rc.setIndicatorDot(loc_rot, 255, 0, 0);
+//                                rc.writeSharedArray(START_INDEX_ENEMY_HQS + index_offset,
+//                                        encode_HQ_location(loc_rot));
+//
+//                                index_offset++;
+//                            }
+//                        }
                     }
                 }
 
