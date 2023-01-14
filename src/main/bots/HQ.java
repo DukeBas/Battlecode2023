@@ -23,7 +23,7 @@ public class HQ extends Robot {
         map_helper = new Map_helper(rc);
     }
 
-    int mostBytecodeExtracted = -1;
+//    int mostBytecodeExtracted = -1;
 
     /**
      * This code is run once per turn (assuming we do not go over bytecode limits.)
@@ -532,6 +532,7 @@ public class HQ extends Robot {
                             // Check which one isn't possible
                             if (rot_set == null) {
                                 // Rotational wasn't possible
+                                assert ver_set != null;
                                 hor_set.retainAll(ver_set);
                                 overlap = hor_set;
                             }
@@ -588,15 +589,15 @@ public class HQ extends Robot {
             Unit building
          */
         if (rc.senseNearbyRobots(RobotType.HEADQUARTERS.visionRadiusSquared, friendly).length < 35) {
+            // Let's try to build a launcher.
+            tryToBuild(RobotType.LAUNCHER);
+
             // Let's try to build a carrier.
-            // tryToBuild(RobotType.CARRIER);
             if (rng.nextBoolean()) {
                 build_carrier(ResourceType.MANA);
             } else {
                 build_carrier(ResourceType.ADAMANTIUM);
             }
-            // Let's try to build a launcher.
-            tryToBuild(RobotType.LAUNCHER);
         } else if (rc.canBuildAnchor(Anchor.STANDARD)) {
             // If we can build an anchor do it!
             rc.buildAnchor(Anchor.STANDARD);
