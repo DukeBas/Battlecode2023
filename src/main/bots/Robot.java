@@ -394,6 +394,7 @@ public abstract class Robot {
         return 1 == ((shared >> index) & 1);
     }
 
+    // TODO: bitwise
     ResourceType decode_HQ_resource_assignment(int HQ_id) throws GameActionException {
         String hq_data = String.format("%16s", Integer.toBinaryString(rc.readSharedArray(START_INDEX_ROLE_ASSIGNMENT))).replace(' ', '0');
         hq_data = hq_data.substring(4 * HQ_id, 4 * HQ_id + 2);
@@ -426,6 +427,7 @@ public abstract class Robot {
     // Each HQ gets 4 bits.
     // First two bits are to assign carriers
     // TODO: use second two bits to assign launchers
+    // TODO: bitwise
     void assign_carrier(ResourceType type, int HQ_id) throws GameActionException {
         String assignment = "";
         switch (type) {
