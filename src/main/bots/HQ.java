@@ -1,7 +1,11 @@
 package main.bots;
 
 import battlecode.common.*;
+import main.util.Constants;
+import main.util.Map_helper;
 import main.util.PseudoDFS20;
+
+import java.util.Arrays;
 
 import static first_bot.util.Constants.directions;
 
@@ -9,11 +13,13 @@ public class HQ extends Robot {
     int HQ_id = -1;
 
     MapLocation ownLocation;
+    Map_helper map_helper;
 
     public HQ(RobotController rc) {
         super(rc);
         ownLocation = rc.getLocation();
         pathfinding = new PseudoDFS20(rc);
+        map_helper = new Map_helper(rc);
     }
 
     int mostBytecodeExtracted = -1;
@@ -36,13 +42,77 @@ public class HQ extends Robot {
                     if (rc.readSharedArray(i) == 0) {
                         rc.writeSharedArray(i, encode_HQ_location(ownLocation));
                         HQ_id = i - START_INDEX_FRIENDLY_HQS;
-                        System.out.println("HQ ID " + HQ_id);
                         break;
                     }
                 }
                 break;
             case 2:
-                // Reflection lines/middle of the map gives away info
+                // Own HQ locations & reflection lines/middle of the map gives away info
+                MapLocation[] friendly_HQs = getFriendlyHQLocations();
+
+                // Test for Rotational symmetry (180 deg around middle)
+                // -> HQs
+                boolean rotational_possible = true;
+                for (MapLocation hq : friendly_HQs) {
+                    // If we can see the rotational symmetric version of a location, check if it has an HQ
+                    MapLocation sym = map_helper.rotationalSymmetricLocation(hq);
+                    if (rc.canSenseLocation(sym)) {
+                        // It is in range!
+                        if (rc.canSenseRobotAtLocation(sym)){
+                            // There's a robot there ?!
+                            // Is it an enemy HQ?
+                            RobotInfo info = rc.senseRobotAtLocation(sym);
+                            if (info.team != enemy || info.type != RobotType.HEADQUARTERS){
+                                // Different robot type, so not possible
+                                rotational_possible = false;
+                                break;
+                            }
+                        } else {
+                            // No robot found there... so rotational symmetry is not possible
+                            rotational_possible = false;
+                            break;
+                        }
+                    }
+
+
+
+                    rc.setIndicatorDot(map_helper.rotationalSymmetricLocation(hq), 10, 10, 10);
+                }
+
+//                MapLocation t1 = new MapLocation(10,10);
+//                rc.setIndicatorDot(t1, 10, 10, 10);
+//                rc.setIndicatorDot(map_helper.rotationalSymmetricLocation(t1), 10, 10, 10);
+//
+//                MapLocation t2 = new MapLocation(21,11);
+//                rc.setIndicatorDot(t2, 110, 110, 110);
+//                rc.setIndicatorDot(map_helper.rotationalSymmetricLocation(t2), 110, 110, 110);
+//
+//                MapLocation t3 = new MapLocation(12,22);
+//                rc.setIndicatorDot(t3, 233, 10, 10);
+//                rc.setIndicatorDot(map_helper.rotationalSymmetricLocation(t3), 233, 10, 10);
+//
+//
+//                MapLocation t4 = new MapLocation(23,23);
+//                rc.setIndicatorDot(t4, 10, 233, 10);
+//                rc.setIndicatorDot(map_helper.rotationalSymmetricLocation(t4), 10, 233, 10);
+
+
+
+                // -> Map details
+                if (rotational_possible){
+
+                }
+
+                if (!rotational_possible){
+                    // We have disproven possibility of rotational symmetry here
+                    System.out.println("DISPROVEN ROTATIONAL");
+                    commSaveBool(Constants.Communication_bools.SYM_ROTATIONAL, false);
+                }
+
+                // Test for vertical symmetry (reflect in middle vertical line)
+
+                // Test for horizontal symmetry (reflect in middle horizontal line)
+
                 break;
             default:
                 // Uncomment to try out how much bytecode something costs
@@ -95,7 +165,7 @@ public class HQ extends Robot {
         Direction dir = null;
         for (Direction d : directions) {
             MapLocation loc = ownLocation.add(d);
-            if (!rc.isLocationOccupied(loc) && rc.sensePassability(loc)) {
+            if (rc.canSenseLocation(loc) && !rc.isLocationOccupied(loc) && rc.sensePassability(loc)) {
                 // we can build on this spot!
                 dir = d;
                 break;

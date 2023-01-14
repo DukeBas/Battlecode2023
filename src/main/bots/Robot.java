@@ -3,6 +3,7 @@ package main.bots;
 import battlecode.common.*;
 import main.util.*;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Random;
 
@@ -289,6 +290,17 @@ public abstract class Robot {
         int x = Integer.parseInt(code_binary.substring(0, 8), 2);
         int y = Integer.parseInt(code_binary.substring(8, 16), 2);
         return new MapLocation(x, y);
+    }
+
+    public MapLocation[] getFriendlyHQLocations() throws GameActionException {
+        ArrayList<MapLocation> friendlyHQs = new ArrayList<>();
+        for (int i = START_INDEX_FRIENDLY_HQS; i < START_INDEX_FRIENDLY_HQS + MAX_HQS; i++){
+            int read = rc.readSharedArray(i);
+            if (read != 0){
+                friendlyHQs.add(decode_hq_location(read));
+            }
+        }
+        return friendlyHQs.toArray(new MapLocation[]{});
     }
 
     // Checks if hq_code is duplicate, and if not stores it.
