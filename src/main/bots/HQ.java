@@ -6,6 +6,8 @@ import main.util.PseudoDFS20;
 import static first_bot.util.Constants.directions;
 
 public class HQ extends Robot {
+    int HQ_id = -1;
+
     MapLocation ownLocation;
 
     public HQ(RobotController rc) {
@@ -33,12 +35,12 @@ public class HQ extends Robot {
                 for (int i = START_INDEX_FRIENDLY_HQS; i < START_INDEX_FRIENDLY_HQS + MAX_HQS; i++) {
                     if (rc.readSharedArray(i) == 0) {
                         rc.writeSharedArray(i, encode_HQ_location(ownLocation));
+                        HQ_id = i;
                         break;
                     }
                 }
                 break;
             case 2:
-                // Try to figure out the symmetry of the map
                 // Reflection lines/middle of the map gives away info
                 break;
             default:
