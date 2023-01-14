@@ -254,6 +254,27 @@ public abstract class Robot {
         well_messages.add(wellcode);
     }
 
+    public MapLocation get_nearest_well(ResourceType type) throws GameActionException{
+        MapLocation closest = null;
+        int min_distance = Integer.MAX_VALUE;
+        for (int i = START_INDEX_WELLS; i < START_INDEX_WELLS + MAX_WELLS; i++) {
+            int info = rc.readSharedArray(i);
+            if (info == 0) {
+                return closest;
+            }
+
+            if (decode_well_resourceType(info) == type) {
+                MapLocation loc = decode_well_location(info);
+                int distance = loc.distanceSquaredTo(rc.getLocation());
+                if (distance < min_distance) {
+                    min_distance = distance;
+                    closest = loc;
+                }
+            }
+        }
+        return closest;
+    }
+
     // Encode hqinfo into integer, first 8 bits are x, second 8 bits are y
     int encode_HQ_location(MapLocation loc) {
         // TODO: do without string operations as they are slow
