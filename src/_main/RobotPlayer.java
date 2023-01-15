@@ -1,7 +1,7 @@
-package main;
+package _main;
 
 import battlecode.common.*;
-import main.bots.*;
+import _main.bots.*;
 
 
 /**

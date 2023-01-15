@@ -1,4 +1,4 @@
-package main.bots;
+package _main.bots;
 
 import battlecode.common.*;
 
@@ -21,8 +21,6 @@ public class Launcher extends Robot {
     @Override
     void run() throws GameActionException {
         attack();
-
-        rc.setIndicatorString("tes " + rc.isActionReady());
 
         // Only move if there is nothing to attack
         if (rc.isActionReady()) {

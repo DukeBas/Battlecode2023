@@ -1,7 +1,7 @@
-package main.bots;
+package _main.bots;
 
 import battlecode.common.*;
-import main.util.Constants;
+import _main.util.Constants;
 
 public class Booster extends Robot{
     public Booster(RobotController rc) {

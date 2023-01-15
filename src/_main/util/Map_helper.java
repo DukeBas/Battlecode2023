@@ -1,4 +1,4 @@
-package main.util;
+package _main.util;
 
 import battlecode.common.MapLocation;
 import battlecode.common.RobotController;

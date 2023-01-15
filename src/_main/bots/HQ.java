@@ -1,9 +1,9 @@
-package main.bots;
+package _main.bots;
 
 import battlecode.common.*;
-import main.util.Constants;
-import main.util.Map_helper;
-import main.util.PseudoDFS20;
+import _main.util.Constants;
+import _main.util.Map_helper;
+import _main.util.PseudoDFS20;
 
 import java.util.HashSet;
 

@@ -1,10 +1,10 @@
-package main.bots;
+package _main.bots;
 
 import battlecode.common.*;
-import main.util.Constants;
+import _main.util.Constants;
 
-public class Amplifier extends Robot{
-    public Amplifier(RobotController rc) {
+public class Destabilizer extends Robot{
+    public Destabilizer(RobotController rc) {
         super(rc);
     }
 

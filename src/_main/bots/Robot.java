@@ -1,7 +1,7 @@
-package main.bots;
+package _main.bots;
 
 import battlecode.common.*;
-import main.util.*;
+import _main.util.*;
 
 import java.util.ArrayList;
 import java.util.HashSet;
