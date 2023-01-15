@@ -17,6 +17,7 @@ public abstract class Robot {
     Team enemy;
     MapLocation built_by;
     Pathfinding pathfinding;
+    SimplePathing combatPathing;
 
 
     /*
@@ -64,10 +65,12 @@ public abstract class Robot {
                 // Doesn't need pathfinding...
                 break;
             case LAUNCHER:
-                // Has higher than 20 range...
-                pathfinding = new BugPathing(rc);
+//                // Has higher than 20 range...
+//                pathfinding = new BugPathing(rc);
+//                combatPathing = new SimplePathing(rc);
             default:
                 pathfinding = new CombinedPDFS20Bug(rc);
+                combatPathing = new SimplePathing(rc);
         }
 
         hq_messages = new HashSet<>();

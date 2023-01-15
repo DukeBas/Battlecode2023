@@ -9,12 +9,11 @@ public class Launcher extends Robot {
     Boolean squad = false;
     int HQ_id;
     int turnsInCombat = 0;
-    SimplePathing combatPathing;
+
 
     public Launcher(RobotController rc) throws GameActionException {
         super(rc);
         HQ_id = get_HQ_id(built_by);
-        combatPathing = new SimplePathing(rc);
     }
 
     /**

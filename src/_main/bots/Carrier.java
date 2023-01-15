@@ -27,6 +27,8 @@ public class Carrier extends Robot {
     void run() throws GameActionException {
         rc.setIndicatorString("I am a " + resource.toString() + " miner");
 
+        MapLocation ownLocation = rc.getLocation();
+
         // If we are about to die, attack an enemy!!
         RobotInfo[] enemies_in_16R2 = rc.senseNearbyRobots(-1, enemy); // Launcher attack radius
         int max_possible_incoming_damage = 0;
@@ -64,6 +66,21 @@ public class Carrier extends Robot {
             }
         }
 
+        // Run away from enemy launchers!
+        RobotInfo[] enemies = rc.senseNearbyRobots(-1, enemy);
+        int num_launchers = 0;
+        for (RobotInfo r : enemies_in_16R2) {
+            if (r.getType() == RobotType.LAUNCHER){
+                num_launchers++;
+            }
+        }
+        if (num_launchers > 0) {
+            MapLocation enemy = enemies[0].getLocation();
+            Direction dir = combatPathing.tryDirection(ownLocation.directionTo(enemy).opposite());
+            if (rc.canMove(dir)){
+                rc.move(dir);
+            }
+        }
 
         if (rc.canTakeAnchor(built_by, Anchor.STANDARD)) {
             rc.takeAnchor(built_by, Anchor.STANDARD);
@@ -84,7 +101,7 @@ public class Carrier extends Robot {
             if (target_well != null) {
                 well_routine();
             } else {
-                while (rc.isMovementReady()) {
+                if (rc.isMovementReady()) {
                     // Cant find well, move randomly
                     Direction dir = directions[rng.nextInt(directions.length)];
                     move_towards(dir);
@@ -106,7 +123,7 @@ public class Carrier extends Robot {
         if (rc.canCollectResource(target_well, 1)) {
             rc.collectResource(target_well, -1);
         } else {
-            while (rc.isMovementReady()) {
+            if (rc.isMovementReady()) {
                 move_towards(target_well);
             }
         }
@@ -132,7 +149,7 @@ public class Carrier extends Robot {
             }
         }
         if (island != null) {
-            while (rc.isMovementReady()) {
+            if (rc.isMovementReady()) {
                 move_towards(island);
             }
             if (rc.canPlaceAnchor()) {
@@ -140,7 +157,7 @@ public class Carrier extends Robot {
                 rc.placeAnchor();
             }
         } else {
-            while (rc.isMovementReady()) {
+            if (rc.isMovementReady()) {
                 // Cant find well, move randomly
                 Direction dir = directions[rng.nextInt(directions.length)];
                 move_towards(dir);
@@ -158,7 +175,7 @@ public class Carrier extends Robot {
             } else if (rc.canTransferResource(built_by, ResourceType.ELIXIR, 1)) {
                 rc.transferResource(built_by, ResourceType.ELIXIR, rc.getResourceAmount(ResourceType.ELIXIR));
             } else {
-                while (rc.isMovementReady()) {
+                if (rc.isMovementReady()) {
                     move_towards(built_by);
                 }
             }
