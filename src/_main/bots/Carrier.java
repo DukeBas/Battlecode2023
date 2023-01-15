@@ -25,6 +25,8 @@ public class Carrier extends Robot{
      */
     @Override
     void run() throws GameActionException {
+        rc.setIndicatorString("I am a " + resource.toString() + " miner");
+
         // If we are about to die, attack an enemy!!
         RobotInfo[] enemies_in_16R2 = rc.senseNearbyRobots(-1, enemy); // Launcher attack radius
         int max_possible_incoming_damage = 0;
@@ -46,7 +48,8 @@ public class Carrier extends Robot{
             attack();
         }
 
-        // TODO: if early game, if you can kill an enemy, spend exactly that amount of resources to do it
+        // If early game, when you can kill an enemy, spend exactly that amount of resources to do it
+//        if (rc.getRoundNum() < )
 
 
 

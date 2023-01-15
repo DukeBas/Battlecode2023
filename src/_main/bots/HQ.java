@@ -4,7 +4,7 @@ import battlecode.common.*;
 import _main.util.Constants;
 import _main.util.Map_helper;
 import _main.util.PseudoDFS20;
-
+import java.util.Arrays;
 import java.util.HashSet;
 
 import static first_bot.util.Constants.directions;
@@ -627,8 +627,6 @@ public class HQ extends Robot {
             }
         }
 
-        // TODO: base build direction on RobotType and situation
-
         // Check if we have found a valid spot to build in
         if (best_dir == Direction.CENTER) {
             return;
@@ -643,7 +641,47 @@ public class HQ extends Robot {
 
     // Build carrier of certain resource type
     void build_carrier(ResourceType type) throws GameActionException {
-        tryToBuild(RobotType.CARRIER);
         assign_carrier(type, HQ_id);
+
+        // Check if there is a well nearby of this type
+        WellInfo[] wells = rc.senseNearbyWells(type);
+        if (wells.length == 0) {
+            tryToBuild(RobotType.CARRIER);
+            return;
+        }
+        // Sort wells so we can build towards the closest one
+        Arrays.sort(wells,
+                (o1, o2) -> ownLocation.distanceSquaredTo(o2.getMapLocation()) - ownLocation.distanceSquaredTo(o1.getMapLocation()));
+        MapLocation closest_well = wells[0].getMapLocation();
+
+        // Try all directions to find the best one to build in
+        Direction best_dir = Direction.CENTER;
+        int build_score = -999;
+        for (Direction d : directions) {
+            MapLocation loc = ownLocation.add(d);
+            if (rc.canSenseLocation(loc) && !rc.isLocationOccupied(loc) && rc.sensePassability(loc)) {
+                MapInfo info = rc.senseMapInfo(loc);
+                int score = (-(info.hasCloud() ? 2 : 0))
+                        - (info.getCurrentDirection() != null ? 1 : 0)
+                        - loc.distanceSquaredTo(closest_well);
+
+                // we can build on this spot! Is it better?
+                if (score > build_score) {
+                    build_score = score;
+                    best_dir = d;
+                }
+            }
+        }
+
+        // Check if we have found a valid spot to build in
+        if (best_dir == Direction.CENTER) {
+            return;
+        }
+        MapLocation buildLocation = rc.getLocation().add(best_dir);
+
+        rc.setIndicatorString("Trying to build a " + type + " carrier");
+        if (rc.canBuildRobot(RobotType.CARRIER, buildLocation)) {
+            rc.buildRobot(RobotType.CARRIER, buildLocation);
+        }
     }
 }
