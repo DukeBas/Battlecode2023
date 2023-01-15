@@ -31,11 +31,12 @@ public abstract class Robot {
     // Indices for in the shared array
     static int RESERVED_SPOT_BOOLS = 0;
     static int START_INDEX_ROLE_ASSIGNMENT = RESERVED_SPOT_BOOLS + 1;
-    static int START_INDEX_FRIENDLY_HQS = START_INDEX_ROLE_ASSIGNMENT + 1;
+    static int START_INDEX_ATTACK_TARGET = START_INDEX_ROLE_ASSIGNMENT + 1;
+    static int START_INDEX_FRIENDLY_HQS = START_INDEX_ATTACK_TARGET + 1;
     static int START_INDEX_ENEMY_HQS = START_INDEX_FRIENDLY_HQS + MAX_HQS;
     static int START_INDEX_WELLS = START_INDEX_ENEMY_HQS + MAX_HQS;
 
-    // #numRESERVERD_SPOTS(=1) + MAX_HQS*2 + MAX_WELLS <= 64 !!!
+    // Indices <= 64 !!!
 
     /**
      * A random number generator.
@@ -60,10 +61,10 @@ public abstract class Robot {
         // Set the right pathfinding module for each bot
         switch (rc.getType()) {
             case HEADQUARTERS:
-                // Doesn't need pathfinding..
+                // Doesn't need pathfinding...
                 break;
             case LAUNCHER:
-                // Has higher than 20 range..
+                // Has higher than 20 range...
                 pathfinding = new BugPathing(rc);
             default:
                 pathfinding = new CombinedPDFS20Bug(rc);

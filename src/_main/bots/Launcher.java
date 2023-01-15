@@ -29,8 +29,17 @@ public class Launcher extends Robot {
         // Check if we are in a squad
         if (get_number_of_launchers() > 1 || squad) {
             squad = true;
-            if (Hq_target == null) {
-                Hq_target = get_nearest_enemy_HQ();
+
+            MapLocation nearest_known_HQ = get_nearest_enemy_HQ();
+
+            if (nearest_known_HQ != null) {
+                Hq_target = nearest_known_HQ;
+            } else {
+                // Is there a global target?
+                int read = rc.readSharedArray(START_INDEX_ATTACK_TARGET);
+                if (read != 0){
+                    Hq_target = decode_hq_location(read);
+                }
             }
         }
 

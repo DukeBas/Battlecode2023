@@ -4,6 +4,7 @@ import battlecode.common.*;
 import _main.util.Constants;
 import _main.util.Map_helper;
 import _main.util.PseudoDFS20;
+
 import java.util.Arrays;
 import java.util.HashSet;
 
@@ -562,17 +563,17 @@ public class HQ extends Robot {
             default:
                 //TODO: If at least one, but not all, enemy HQs have been found, check symmetry again on that
 
-                // Uncomment to try out how much bytecode something costs
-//                int before = Clock.getBytecodesLeft();
-//
-//
-//                int after = Clock.getBytecodesLeft();
-//                int diff = before - after;
-////                System.out.println("USED " + diff + " BYTECODE" + (turnCountStart != turnCount ? ", WENT OVER LIMIT!!!" : ""));
-//                if (diff > mostBytecodeExtracted) {
-//                    mostBytecodeExtracted = diff;
-//                    System.out.println("new bytecode record :(  " + diff);
-//                }
+
+                // Set a new attack target every so often
+                // TODO: make more robust; don't just use rotational, use all information already available
+                int round = rc.getRoundNum();
+                if (HQ_id == 0 && round % 200 == 0){
+                    int index = (round / 200) % friendly_HQs.length;
+                    rc.writeSharedArray(
+                            START_INDEX_ATTACK_TARGET,
+                            encode_HQ_location(map_helper.rotationalSymmetricLocation(friendly_HQs[index])));
+                }
+
                 break;
         }
 
@@ -583,6 +584,17 @@ public class HQ extends Robot {
 //        }
 //        System.out.println(Arrays.toString(arr));
 
+        // Uncomment to try out how much bytecode something costs
+//                int before = Clock.getBytecodesLeft();
+//
+//
+//                int after = Clock.getBytecodesLeft();
+//                int diff = before - after;
+////                System.out.println("USED " + diff + " BYTECODE" + (turnCountStart != turnCount ? ", WENT OVER LIMIT!!!" : ""));
+//                if (diff > mostBytecodeExtracted) {
+//                    mostBytecodeExtracted = diff;
+//                    System.out.println("new bytecode record :(  " + diff);
+//                }
 
 
         /*
