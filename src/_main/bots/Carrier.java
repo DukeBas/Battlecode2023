@@ -4,14 +4,14 @@ import battlecode.common.*;
 
 import static first_bot.util.Constants.directions;
 
-public class Carrier extends Robot{
+public class Carrier extends Robot {
 
     static int MAX_RESOURCES = 40;
     ResourceType resource;
     int HQ_id;
     MapLocation target_well = null;
 
-    public Carrier(RobotController rc) throws GameActionException{
+    public Carrier(RobotController rc) throws GameActionException {
         super(rc);
         HQ_id = get_HQ_id(built_by);
         resource = decode_HQ_resource_assignment(HQ_id);
@@ -31,7 +31,7 @@ public class Carrier extends Robot{
         RobotInfo[] enemies_in_16R2 = rc.senseNearbyRobots(-1, enemy); // Launcher attack radius
         int max_possible_incoming_damage = 0;
         for (RobotInfo r : enemies_in_16R2) {
-            switch (r.getType()){
+            switch (r.getType()) {
                 case LAUNCHER:
                     max_possible_incoming_damage += 6;
                     break;
@@ -44,24 +44,25 @@ public class Carrier extends Robot{
         }
 
         if (max_possible_incoming_damage >= rc.getHealth()) {
-            // We can die now! Try to save ourselves by attacking!
-            attack();
+            // We can die now! Try to save ourselves by attacking if we can!
+            if (getCarrierDamage(get_resource_count()) >= 1) {
+                attack();
+            }
         }
 
         // If early game, when you can kill an enemy, spend exactly that amount of resources to do it
-        if (rc.getRoundNum() < 50 && rc.isActionReady()){
+        if (rc.getRoundNum() < 50 && rc.isActionReady()) {
             RobotInfo[] attackable = rc.senseNearbyRobots(RobotType.CARRIER.actionRadiusSquared, enemy);
             int max_damage = getCarrierDamage(get_resource_count());
             for (RobotInfo r : attackable) {
-                if (r.getHealth() < max_damage){
+                if (r.getHealth() < max_damage) {
                     MapLocation loc = r.getLocation();
-                    if (rc.canAttack(loc)){
+                    if (rc.canAttack(loc)) {
                         rc.attack(loc);
                     }
                 }
             }
         }
-
 
 
         if (rc.canTakeAnchor(built_by, Anchor.STANDARD)) {
@@ -90,8 +91,10 @@ public class Carrier extends Robot{
         }
 
         if (max_possible_incoming_damage >= rc.getHealth()) {
-            // We can die now! Try to save ourselves by attacking!
-            attack();
+            // We can die now! Try to save ourselves by attacking if we can!
+            if (getCarrierDamage(get_resource_count()) >= 1) {
+                attack();
+            }
         }
 
         scan();
@@ -137,7 +140,7 @@ public class Carrier extends Robot{
         }
     }
 
-    public void hq_routine() throws GameActionException{
+    public void hq_routine() throws GameActionException {
         if (get_resource_count() == MAX_RESOURCES) {
             // Resources full, Pathfind to HQ
             if (rc.canTransferResource(built_by, ResourceType.ADAMANTIUM, 1)) {
@@ -184,7 +187,7 @@ public class Carrier extends Robot{
         }
     }
 
-    public int getCarrierDamage(int resource_count){
+    public int getCarrierDamage(int resource_count) {
         return (int) Math.floor(resource_count / 5.0);
     }
 }
