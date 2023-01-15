@@ -2,6 +2,8 @@ package _main.bots;
 
 import battlecode.common.*;
 
+import java.util.Arrays;
+
 import static first_bot.util.Constants.directions;
 
 public class Carrier extends Robot {
@@ -30,7 +32,7 @@ public class Carrier extends Robot {
         MapLocation ownLocation = rc.getLocation();
 
         // If we are about to die, attack an enemy!!
-        RobotInfo[] enemies_in_16R2 = rc.senseNearbyRobots(-1, enemy); // Launcher attack radius
+        RobotInfo[] enemies_in_16R2 = rc.senseNearbyRobots(16, enemy); // Launcher attack radius
         int max_possible_incoming_damage = 0;
         for (RobotInfo r : enemies_in_16R2) {
             switch (r.getType()) {
@@ -69,7 +71,7 @@ public class Carrier extends Robot {
         // Run away from enemy launchers!
         RobotInfo[] enemies = rc.senseNearbyRobots(-1, enemy);
         int num_launchers = 0;
-        for (RobotInfo r : enemies_in_16R2) {
+        for (RobotInfo r : enemies) {
             if (r.getType() == RobotType.LAUNCHER){
                 num_launchers++;
             }
@@ -167,7 +169,7 @@ public class Carrier extends Robot {
 
     public void hq_routine() throws GameActionException {
         if (get_resource_count() == MAX_RESOURCES) {
-            // Resources full, Pathfind to HQ
+            // Resources full, pathfind to HQ
             if (rc.canTransferResource(built_by, ResourceType.ADAMANTIUM, 1)) {
                 rc.transferResource(built_by, ResourceType.ADAMANTIUM, rc.getResourceAmount(ResourceType.ADAMANTIUM));
             } else if (rc.canTransferResource(built_by, ResourceType.MANA, 1)) {
@@ -187,14 +189,32 @@ public class Carrier extends Robot {
         return rc.getResourceAmount(ResourceType.ADAMANTIUM) + rc.getResourceAmount(ResourceType.MANA) + rc.getResourceAmount(ResourceType.ELIXIR);
     }
 
+    // TODO: DO BETTER THAN THESE BAINDAIDS
+    @Override
+    public void move_towards(MapLocation loc) throws GameActionException {
+        super.move_towards(loc);
+        rc.setIndicatorString(rc.isMovementReady() + "");
+        super.move_towards(combatPathing.getDirection(loc));
+    }
+    public void move_towards(Direction dir) throws GameActionException {
+        super.move_towards(dir);
+        super.move_towards(dir);
+    }
+
     @Override
     public void scan() throws GameActionException {
         if (Clock.getBytecodesLeft() < 100) return; // Check if we are nearly out of bytecode
 
         // Scan for wells and store them
         WellInfo[] wells = rc.senseNearbyWells();
+        rc.setIndicatorString(Arrays.toString(wells));
         for (WellInfo well : wells) {
-            if (Clock.getBytecodesLeft() < 400) return; // Check if we are nearly out of bytecode
+            if (Clock.getBytecodesLeft() < 100) return; // Check if we are nearly out of bytecode
+
+            if (well.getResourceType() == resource && target_well == null) { // Go to the well of our type
+                target_well = well.getMapLocation();
+            }
+
             if (well.getResourceType() == resource && target_well != null) {
                 if (well.getMapLocation().distanceSquaredTo(rc.getLocation()) <= target_well.distanceSquaredTo(rc.getLocation())) {
                     target_well = well.getMapLocation();
@@ -206,7 +226,7 @@ public class Carrier extends Robot {
 
         RobotInfo[] hqs = rc.senseNearbyRobots(-1, enemy);
         for (RobotInfo hq : hqs) {
-            if (Clock.getBytecodesLeft() < 400) return; // Check if we are nearly out of bytecode
+            if (Clock.getBytecodesLeft() < 100) return; // Check if we are nearly out of bytecode
             if (hq.type == RobotType.HEADQUARTERS) {
                 int hq_code = encode_HQ_location(hq.getLocation());
                 store_hq_info(hq_code);
