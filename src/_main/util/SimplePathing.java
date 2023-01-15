@@ -53,6 +53,36 @@ public class SimplePathing implements Pathfinding {
         return Direction.CENTER;
     }
 
+    public Direction tryDirection(Direction targetDir) throws GameActionException {
+        MapLocation ownLocation = rc.getLocation();
+
+        // Check if we can actually move to that spot
+        MapLocation toMoveTo = ownLocation.add(targetDir);
+
+        if (locationOnMap(toMoveTo) && rc.sensePassability(toMoveTo) && !rc.isLocationOccupied(toMoveTo)){
+            return targetDir;
+        }
+
+        // Location was not possible... try out other options...
+        MapLocation[] options = new MapLocation[]{
+                ownLocation.add(targetDir.rotateLeft()),
+                ownLocation.add(targetDir.rotateRight()),
+                ownLocation.add(targetDir.rotateLeft().rotateLeft()),
+                ownLocation.add(targetDir.rotateRight().rotateRight()),
+        };
+
+        // Try to move to one of the alternative options
+        for (MapLocation loc : options) {
+            if (locationOnMap(loc) && rc.sensePassability(loc) && !rc.isLocationOccupied(loc)){
+                return ownLocation.directionTo(loc);
+            }
+        }
+
+        // We cannot move closer so just wait?
+        rc.setIndicatorString("pathfinding done booboo, idk what do");
+        return Direction.CENTER;
+    }
+
     public boolean locationOnMap(MapLocation loc){
         int x = loc.x;
         int y = loc.y;
