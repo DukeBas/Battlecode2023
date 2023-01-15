@@ -37,10 +37,7 @@ public class Launcher extends Robot {
 
             if (rc.isMovementReady()) {
                 rc.setIndicatorString("Could find target, very sad");
-                int x = built_by.x < rc.getMapWidth() / 2 ? built_by.x + 2 : built_by.x - 2;
-                int y = built_by.y < rc.getMapHeight() / 2 ? built_by.y + 2 : built_by.y - 2;
-                rc.setIndicatorString(x + " " + y);
-                move_towards(new MapLocation(x, y));
+                move_towards(getGroupingLocation());
             }
 
             // Try to attack again now that we've moved
@@ -54,7 +51,8 @@ public class Launcher extends Robot {
 
     public int get_number_of_launchers() throws GameActionException {
         int count = 0;
-        RobotInfo[] robots = rc.senseNearbyRobots(2, friendly);
+        // Get launchers at grouping position
+        RobotInfo[] robots = rc.senseNearbyRobots(getGroupingLocation(), 2, friendly);
         for (RobotInfo robot : robots) {
             if (robot.getType() == RobotType.LAUNCHER) {
                 count++;
@@ -94,5 +92,13 @@ public class Launcher extends Robot {
                 rc.attack(loc);
             }
         }
+    }
+
+    // Get location used for squads to wait at
+    MapLocation getGroupingLocation(){
+        return new MapLocation(
+                built_by.x < rc.getMapWidth() / 2 ? built_by.x + 2 : built_by.x - 2,
+                built_by.y < rc.getMapHeight() / 2 ? built_by.y + 2 : built_by.y - 2
+        );
     }
 }
