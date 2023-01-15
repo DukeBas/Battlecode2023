@@ -84,9 +84,11 @@ public class Carrier extends Robot {
             if (target_well != null) {
                 well_routine();
             } else {
-                // Cant find well, move randomly
-                Direction dir = directions[rng.nextInt(directions.length)];
-                move_towards(dir);
+                while (rc.isMovementReady()) {
+                    // Cant find well, move randomly
+                    Direction dir = directions[rng.nextInt(directions.length)];
+                    move_towards(dir);
+                }
             }
         }
 
@@ -104,7 +106,9 @@ public class Carrier extends Robot {
         if (rc.canCollectResource(target_well, 1)) {
             rc.collectResource(target_well, -1);
         } else {
-            move_towards(target_well);
+            while (rc.isMovementReady()) {
+                move_towards(target_well);
+            }
         }
     }
 
@@ -128,15 +132,19 @@ public class Carrier extends Robot {
             }
         }
         if (island != null) {
-            move_towards(island);
+            while (rc.isMovementReady()) {
+                move_towards(island);
+            }
             if (rc.canPlaceAnchor()) {
                 rc.setIndicatorString("Huzzah, placed anchor!");
                 rc.placeAnchor();
             }
         } else {
-            // Cant find well, move randomly
-            Direction dir = directions[rng.nextInt(directions.length)];
-            move_towards(dir);
+            while (rc.isMovementReady()) {
+                // Cant find well, move randomly
+                Direction dir = directions[rng.nextInt(directions.length)];
+                move_towards(dir);
+            }
         }
     }
 
@@ -150,7 +158,9 @@ public class Carrier extends Robot {
             } else if (rc.canTransferResource(built_by, ResourceType.ELIXIR, 1)) {
                 rc.transferResource(built_by, ResourceType.ELIXIR, rc.getResourceAmount(ResourceType.ELIXIR));
             } else {
-                move_towards(built_by);
+                while (rc.isMovementReady()) {
+                    move_towards(built_by);
+                }
             }
             target_well = null;
         }
