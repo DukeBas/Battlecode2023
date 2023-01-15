@@ -54,7 +54,7 @@ public class Launcher extends Robot {
 
     public int get_number_of_launchers() throws GameActionException {
         int count = 0;
-        RobotInfo[] robots = rc.senseNearbyRobots(5, friendly);
+        RobotInfo[] robots = rc.senseNearbyRobots(2, friendly);
         for (RobotInfo robot : robots) {
             if (robot.getType() == RobotType.LAUNCHER) {
                 count++;
