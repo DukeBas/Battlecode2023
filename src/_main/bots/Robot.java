@@ -349,7 +349,7 @@ public abstract class Robot {
 
                         int read = rc.readSharedArray(i);
                         if (read == 0) { // we found an empty spot!
-                            System.out.println("Writing " + m + " for HQ from " + decode_hq_location(m) + " to index " + i);
+//                            System.out.println("Writing " + m + " for HQ from " + decode_hq_location(m) + " to index " + i);
                             rc.writeSharedArray(i, m);
                             break;
                         }
@@ -373,7 +373,7 @@ public abstract class Robot {
 
                         int read = rc.readSharedArray(i);
                         if (read == 0) { // we found an empty spot!
-                            System.out.println("Writing " + m + " for " + decode_well_resourceType(m) + " well from " + decode_well_location(m) + " to index " + i);
+//                            System.out.println("Writing " + m + " for " + decode_well_resourceType(m) + " well from " + decode_well_location(m) + " to index " + i);
                             rc.writeSharedArray(i, m);
                             break;
                         }

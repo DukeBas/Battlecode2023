@@ -58,7 +58,7 @@ public class BugPathing implements Pathfinding {
 
 
         // We cannot move closer so just wait?
-        rc.setIndicatorString("pathfinding done booboo, idk what do");
+        rc.setIndicatorString("bug pathfinding done booboo, idk what do for target loc " + target);
         return Direction.CENTER;
     }
 

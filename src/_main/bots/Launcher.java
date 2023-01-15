@@ -103,7 +103,7 @@ public class Launcher extends Robot {
                 if (num_attackable_enemy_combatants == 0 && num_seen_enemy_combatants == 1){
                     Direction dir = combatPathing.tryDirection(
                             rc.getLocation().directionTo(enemies[0].getLocation()));
-                    rc.setIndicatorString("I'm outta here, so low. Going to " + dir);
+                    rc.setIndicatorString("trying to attack! Going to " + dir);
                     if (rc.canMove(dir)) {
                         rc.move(dir);
                     }
