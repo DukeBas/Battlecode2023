@@ -49,7 +49,18 @@ public class Carrier extends Robot{
         }
 
         // If early game, when you can kill an enemy, spend exactly that amount of resources to do it
-//        if (rc.getRoundNum() < )
+        if (rc.getRoundNum() < 50 && rc.isActionReady()){
+            RobotInfo[] attackable = rc.senseNearbyRobots(RobotType.CARRIER.actionRadiusSquared, enemy);
+            int max_damage = getCarrierDamage(get_resource_count());
+            for (RobotInfo r : attackable) {
+                if (r.getHealth() < max_damage){
+                    MapLocation loc = r.getLocation();
+                    if (rc.canAttack(loc)){
+                        rc.attack(loc);
+                    }
+                }
+            }
+        }
 
 
 
@@ -171,6 +182,10 @@ public class Carrier extends Robot{
                 store_hq_info(hq_code);
             }
         }
+    }
+
+    public int getCarrierDamage(int resource_count){
+        return (int) Math.floor(resource_count / 5.0);
     }
 }
 
