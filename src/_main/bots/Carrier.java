@@ -25,6 +25,30 @@ public class Carrier extends Robot{
      */
     @Override
     void run() throws GameActionException {
+        // If we are about to die, attack an enemy!!
+        RobotInfo[] enemies_in_16R2 = rc.senseNearbyRobots(-1, enemy); // Launcher attack radius
+        int max_possible_incoming_damage = 0;
+        for (RobotInfo r : enemies_in_16R2) {
+            switch (r.getType()){
+                case LAUNCHER:
+                    max_possible_incoming_damage += 6;
+                    break;
+                case DESTABILIZER:
+                    max_possible_incoming_damage += 5;
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        if (max_possible_incoming_damage >= rc.getHealth()) {
+            // We can die now! Try to save ourselves by attacking!
+            attack();
+        }
+
+        // TODO: if early game, if you can kill an enemy, spend exactly that amount of resources to do it
+
+
 
         if (rc.canTakeAnchor(built_by, Anchor.STANDARD)) {
             rc.takeAnchor(built_by, Anchor.STANDARD);
@@ -51,6 +75,11 @@ public class Carrier extends Robot{
             }
         }
 
+        if (max_possible_incoming_damage >= rc.getHealth()) {
+            // We can die now! Try to save ourselves by attacking!
+            attack();
+        }
+
         scan();
     }
 
@@ -64,6 +93,7 @@ public class Carrier extends Robot{
 
     public void anchor_routine() throws GameActionException {
         // If I have an anchor singularly focus on getting it to the first island I see
+        // TODO: improve it. Do not place an anchor if there's a lot of enemies around..
         int[] islands = rc.senseNearbyIslands();
         MapLocation island = null;
         int min_dist = Integer.MAX_VALUE;

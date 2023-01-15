@@ -61,40 +61,9 @@ public class Launcher extends Robot {
         return count;
     }
 
-    public void attack() throws GameActionException {
-        // Try to attack someone
-        int radius = rc.getType().actionRadiusSquared;
-        Team opponent = rc.getTeam().opponent();
-        RobotInfo[] enemies = rc.senseNearbyRobots(radius, opponent);
-
-//        // Sort enemies by hp
-//        Arrays.sort(enemies, Comparator.comparingInt(o -> o.health));
-
-        if (enemies.length > 0) {
-            RobotInfo toAttack = enemies[0];
-            int lowestHP = Integer.MAX_VALUE; // needs separate value as initial target might be HQ
-
-            for (RobotInfo r : enemies) {
-                RobotType type = r.getType();
-                if (type == RobotType.HEADQUARTERS) continue;
-
-                if ((type == toAttack.type && r.getHealth() < lowestHP) ||
-                        (type == RobotType.LAUNCHER && toAttack.type != RobotType.LAUNCHER) ||
-                        toAttack.getType() == RobotType.HEADQUARTERS) {
-                    lowestHP = r.getHealth();
-                    toAttack = r;
-                }
-            }
-
-            MapLocation loc = toAttack.getLocation();
-            if (rc.canAttack(loc)) {
-                rc.setIndicatorString("Attacking");
-                rc.attack(loc);
-            }
-        }
-    }
 
     // Get location used for squads to wait at
+    // TODO: account for blocked grouping location..
     MapLocation getGroupingLocation(){
         return new MapLocation(
                 built_by.x < rc.getMapWidth() / 2 ? built_by.x + 2 : built_by.x - 2,

@@ -4,6 +4,7 @@ import battlecode.common.*;
 import _main.util.*;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Random;
 
@@ -486,6 +487,36 @@ public abstract class Robot {
             }
         }
         return closest_hq;
+    }
+
+    public void attack() throws GameActionException {
+        // Get all possible options to attack
+        RobotInfo[] enemies = rc.senseNearbyRobots(rc.getType().actionRadiusSquared, enemy);
+
+        rc.setIndicatorString(rc.getLocation() + Arrays.toString(enemies));
+
+        if (enemies.length > 0) {
+            RobotInfo toAttack = enemies[0];
+            int lowestHP = Integer.MAX_VALUE; // needs separate value as initial target might be HQ
+
+            for (RobotInfo r : enemies) {
+                RobotType type = r.getType();
+                if (type == RobotType.HEADQUARTERS) continue;
+
+                if ((type == toAttack.type && r.getHealth() < lowestHP) ||
+                        (type == RobotType.LAUNCHER && toAttack.type != RobotType.LAUNCHER) ||
+                        toAttack.getType() == RobotType.HEADQUARTERS) {
+                    lowestHP = r.getHealth();
+                    toAttack = r;
+                }
+            }
+
+            MapLocation loc = toAttack.getLocation();
+            if (rc.canAttack(loc)) {
+                rc.setIndicatorString("Attacking");
+                rc.attack(loc);
+            }
+        }
     }
 
 }
