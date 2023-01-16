@@ -65,9 +65,16 @@ public class Launcher extends Robot {
             }
             RobotInfo[] enemies = rc.senseNearbyRobots(-1, enemy);
             int num_seen_enemy_combatants = 0;
+            int num_enemy_hqs = 0;
             for (RobotInfo r : enemies) {
                 RobotType type = r.getType();
-                if (type == RobotType.LAUNCHER) num_seen_enemy_combatants++;
+                switch (type){
+                    case LAUNCHER:
+                        num_seen_enemy_combatants++;
+                        break;
+                    case HEADQUARTERS:
+                        num_enemy_hqs++;
+                }
             }
             RobotInfo[] attackable_enemies = rc.senseNearbyRobots(RobotType.LAUNCHER.actionRadiusSquared, enemy);
             int num_attackable_enemy_combatants = 0;
@@ -76,8 +83,8 @@ public class Launcher extends Robot {
                 if (type == RobotType.LAUNCHER) num_attackable_enemy_combatants++;
             }
 
-            if (num_seen_enemy_combatants > 0) {
-                // There's enemies nearby!
+            if (enemies.length - num_enemy_hqs > 0) {
+                // There's enemy combatants nearby!
                 turnsInCombat++;
                 if (num_attackable_enemy_combatants > 1 || num_close_friendly_combatants < num_seen_enemy_combatants) {
                     // We are outnumbered! Retreat!
@@ -92,7 +99,7 @@ public class Launcher extends Robot {
                 } else if (num_seen_friendly_combatants - 2 > num_seen_enemy_combatants) {
                     // Move to enemy when ready
                     if (squad && Hq_target != null) {
-                        rc.setIndicatorString("Heading towards enemy HQ at " + Hq_target);
+                        rc.setIndicatorString(num_seen_enemy_combatants + "Heading towards enemy HQ at " + Hq_target);
                         move_towards(Hq_target);
                     } else {
                         move_towards(getGroupingLocation());
@@ -100,7 +107,7 @@ public class Launcher extends Robot {
                 }
 
                 // If there is one enemy is vision (but not attacking range), move in //TODO: just enough to strike first
-                if (num_attackable_enemy_combatants == 0 && num_seen_enemy_combatants == 1){
+                if (num_attackable_enemy_combatants == 0 && num_seen_enemy_combatants == 1) {
                     Direction dir = combatPathing.tryDirection(
                             rc.getLocation().directionTo(enemies[0].getLocation()));
                     rc.setIndicatorString("trying to attack! Going to " + dir);

@@ -72,14 +72,14 @@ public class Carrier extends Robot {
         RobotInfo[] enemies = rc.senseNearbyRobots(-1, enemy);
         int num_launchers = 0;
         for (RobotInfo r : enemies) {
-            if (r.getType() == RobotType.LAUNCHER){
+            if (r.getType() == RobotType.LAUNCHER) {
                 num_launchers++;
             }
         }
         if (num_launchers > 0) {
             MapLocation enemy = enemies[0].getLocation();
             Direction dir = combatPathing.tryDirection(ownLocation.directionTo(enemy).opposite());
-            if (rc.canMove(dir)){
+            if (rc.canMove(dir)) {
                 rc.move(dir);
             }
         }
@@ -189,16 +189,40 @@ public class Carrier extends Robot {
         return rc.getResourceAmount(ResourceType.ADAMANTIUM) + rc.getResourceAmount(ResourceType.MANA) + rc.getResourceAmount(ResourceType.ELIXIR);
     }
 
-    // TODO: DO BETTER THAN THESE BAINDAIDS
+    // TODO: DO BETTER THAN THIS BAINDAID
     @Override
     public void move_towards(MapLocation loc) throws GameActionException {
+        MapLocation before = rc.getLocation();
         super.move_towards(loc);
-        rc.setIndicatorString(rc.isMovementReady() + "");
-        super.move_towards(combatPathing.getDirection(loc));
-    }
-    public void move_towards(Direction dir) throws GameActionException {
-        super.move_towards(dir);
-        super.move_towards(dir);
+        MapLocation after = rc.getLocation();
+        Direction dirTaken = before.directionTo(after);
+
+        Direction next = combatPathing.getDirection(loc);
+        MapLocation next_loc = after.add(next);
+        // Try to make a guess for a good next step
+        if (!next_loc.equals(before) && rc.canMove(next)) {
+            rc.move(next);
+        }
+        // Otherwise try taking the same direction as before..
+        if (rc.canMove(dirTaken)){
+            rc.move(dirTaken);
+        }
+        // If all else fails; see which tiles get us close to goal but not closer to start, go there
+        Direction best = Direction.CENTER;
+        int closest_dist = Integer.MAX_VALUE;
+        for (Direction d : directions) {
+            MapLocation l = after.add(d);
+            if (rc.canSenseLocation(l) && rc.canMove(d) && before.distanceSquaredTo(l) > 1){
+                int dist = loc.distanceSquaredTo(l);
+                if (dist < closest_dist) {
+                    closest_dist = dist;
+                    best = d;
+                }
+            }
+        }
+        if (best != Direction.CENTER && rc.canMove(best)){
+            rc.move(best);
+        }
     }
 
     @Override
@@ -207,7 +231,7 @@ public class Carrier extends Robot {
 
         // Scan for wells and store them
         WellInfo[] wells = rc.senseNearbyWells();
-        rc.setIndicatorString(Arrays.toString(wells));
+//        rc.setIndicatorString(Arrays.toString(wells));
         for (WellInfo well : wells) {
             if (Clock.getBytecodesLeft() < 100) return; // Check if we are nearly out of bytecode
 
