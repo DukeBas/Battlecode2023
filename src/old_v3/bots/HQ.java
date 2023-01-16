@@ -1,11 +1,10 @@
-package _main.bots;
+package old_v3.bots;
 
 import battlecode.common.*;
-import _main.util.Constants;
-import _main.util.Map_helper;
-import _main.util.PseudoDFS20;
+import old_v3.util.Constants;
+import old_v3.util.Map_helper;
+import old_v3.util.PseudoDFS20;
 
-import java.util.Arrays;
 import java.util.HashSet;
 
 import static first_bot.util.Constants.directions;
@@ -563,28 +562,7 @@ public class HQ extends Robot {
             default:
                 //TODO: If at least one, but not all, enemy HQs have been found, check symmetry again on that
 
-
-                // Set a new attack target every so often
-                // TODO: make more robust; don't just use rotational, use all information already available
-                int round = rc.getRoundNum();
-                if (HQ_id == 0 && round % 200 == 0){
-                    int index = (round / 200) % friendly_HQs.length;
-                    rc.writeSharedArray(
-                            START_INDEX_ATTACK_TARGET,
-                            encode_HQ_location(map_helper.rotationalSymmetricLocation(friendly_HQs[index])));
-                }
-
-                break;
-        }
-
-        // Uncomment below to see shared array for every turn!
-//        int[] arr = new int[64];
-//        for (int i = 0; i < 64; i++) {
-//            arr[i] = rc.readSharedArray(i);
-//        }
-//        System.out.println(Arrays.toString(arr));
-
-        // Uncomment to try out how much bytecode something costs
+                // Uncomment to try out how much bytecode something costs
 //                int before = Clock.getBytecodesLeft();
 //
 //
@@ -595,6 +573,16 @@ public class HQ extends Robot {
 //                    mostBytecodeExtracted = diff;
 //                    System.out.println("new bytecode record :(  " + diff);
 //                }
+                break;
+        }
+
+        // Uncomment below to see shared array for every turn!
+//        int[] arr = new int[64];
+//        for (int i = 0; i < 64; i++) {
+//            arr[i] = rc.readSharedArray(i);
+//        }
+//        System.out.println(Arrays.toString(arr));
+
 
 
         /*
@@ -624,15 +612,12 @@ public class HQ extends Robot {
 
         // Try all directions to find one to build in
         Direction best_dir = Direction.CENTER;
-        MapLocation center = new MapLocation(rc.getMapWidth()/2, rc.getMapHeight()/2);
         int build_score = -999;
         for (Direction d : directions) {
             MapLocation loc = ownLocation.add(d);
             if (rc.canSenseLocation(loc) && !rc.isLocationOccupied(loc) && rc.sensePassability(loc)) {
                 MapInfo info = rc.senseMapInfo(loc);
-                int score = (-(info.hasCloud() ? 20 : 0))
-                        - (info.getCurrentDirection() != null ? 10 : 0)
-                        - center.distanceSquaredTo(loc); // Prefer building towards center of map
+                int score = (-(info.hasCloud() ? 2 : 0)) - (info.getCurrentDirection() != null ? 1 : 0);
 
                 // we can build on this spot! Is it better?
                 if (score > build_score) {
@@ -641,6 +626,8 @@ public class HQ extends Robot {
                 }
             }
         }
+
+        // TODO: base build direction on RobotType and situation
 
         // Check if we have found a valid spot to build in
         if (best_dir == Direction.CENTER) {
@@ -656,47 +643,7 @@ public class HQ extends Robot {
 
     // Build carrier of certain resource type
     void build_carrier(ResourceType type) throws GameActionException {
+        tryToBuild(RobotType.CARRIER);
         assign_carrier(type, HQ_id);
-
-        // Check if there is a well nearby of this type
-        WellInfo[] wells = rc.senseNearbyWells(type);
-        if (wells.length == 0) {
-            tryToBuild(RobotType.CARRIER);
-            return;
-        }
-        // Sort wells so we can build towards the closest one
-        Arrays.sort(wells,
-                (o1, o2) -> ownLocation.distanceSquaredTo(o2.getMapLocation()) - ownLocation.distanceSquaredTo(o1.getMapLocation()));
-        MapLocation closest_well = wells[0].getMapLocation();
-
-        // Try all directions to find the best one to build in
-        Direction best_dir = Direction.CENTER;
-        int build_score = -999;
-        for (Direction d : directions) {
-            MapLocation loc = ownLocation.add(d);
-            if (rc.canSenseLocation(loc) && !rc.isLocationOccupied(loc) && rc.sensePassability(loc)) {
-                MapInfo info = rc.senseMapInfo(loc);
-                int score = (-(info.hasCloud() ? 2 : 0))
-                        - (info.getCurrentDirection() != null ? 1 : 0)
-                        - loc.distanceSquaredTo(closest_well);
-
-                // we can build on this spot! Is it better?
-                if (score > build_score) {
-                    build_score = score;
-                    best_dir = d;
-                }
-            }
-        }
-
-        // Check if we have found a valid spot to build in
-        if (best_dir == Direction.CENTER) {
-            return;
-        }
-        MapLocation buildLocation = rc.getLocation().add(best_dir);
-
-        rc.setIndicatorString("Trying to build a " + type + " carrier");
-        if (rc.canBuildRobot(RobotType.CARRIER, buildLocation)) {
-            rc.buildRobot(RobotType.CARRIER, buildLocation);
-        }
     }
 }

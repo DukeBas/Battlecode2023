@@ -1,9 +1,9 @@
-package _main.bots;
+package old_v4.bots;
 
 import battlecode.common.*;
-import _main.util.Constants;
-import _main.util.Map_helper;
-import _main.util.PseudoDFS20;
+import old_v4.util.Constants;
+import old_v4.util.Map_helper;
+import old_v4.util.PseudoDFS20;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -624,15 +624,12 @@ public class HQ extends Robot {
 
         // Try all directions to find one to build in
         Direction best_dir = Direction.CENTER;
-        MapLocation center = new MapLocation(rc.getMapWidth()/2, rc.getMapHeight()/2);
         int build_score = -999;
         for (Direction d : directions) {
             MapLocation loc = ownLocation.add(d);
             if (rc.canSenseLocation(loc) && !rc.isLocationOccupied(loc) && rc.sensePassability(loc)) {
                 MapInfo info = rc.senseMapInfo(loc);
-                int score = (-(info.hasCloud() ? 20 : 0))
-                        - (info.getCurrentDirection() != null ? 10 : 0)
-                        - center.distanceSquaredTo(loc); // Prefer building towards center of map
+                int score = (-(info.hasCloud() ? 2 : 0)) - (info.getCurrentDirection() != null ? 1 : 0);
 
                 // we can build on this spot! Is it better?
                 if (score > build_score) {

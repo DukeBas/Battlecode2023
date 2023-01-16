@@ -1,8 +1,6 @@
-package _main.bots;
+package old_v4.bots;
 
 import battlecode.common.*;
-
-import java.util.Arrays;
 
 import static first_bot.util.Constants.directions;
 
@@ -29,10 +27,8 @@ public class Carrier extends Robot {
     void run() throws GameActionException {
         rc.setIndicatorString("I am a " + resource.toString() + " miner");
 
-        MapLocation ownLocation = rc.getLocation();
-
         // If we are about to die, attack an enemy!!
-        RobotInfo[] enemies_in_16R2 = rc.senseNearbyRobots(16, enemy); // Launcher attack radius
+        RobotInfo[] enemies_in_16R2 = rc.senseNearbyRobots(-1, enemy); // Launcher attack radius
         int max_possible_incoming_damage = 0;
         for (RobotInfo r : enemies_in_16R2) {
             switch (r.getType()) {
@@ -68,21 +64,6 @@ public class Carrier extends Robot {
             }
         }
 
-        // Run away from enemy launchers!
-        RobotInfo[] enemies = rc.senseNearbyRobots(-1, enemy);
-        int num_launchers = 0;
-        for (RobotInfo r : enemies) {
-            if (r.getType() == RobotType.LAUNCHER) {
-                num_launchers++;
-            }
-        }
-        if (num_launchers > 0) {
-            MapLocation enemy = enemies[0].getLocation();
-            Direction dir = combatPathing.tryDirection(ownLocation.directionTo(enemy).opposite());
-            if (rc.canMove(dir)) {
-                rc.move(dir);
-            }
-        }
 
         if (rc.canTakeAnchor(built_by, Anchor.STANDARD)) {
             rc.takeAnchor(built_by, Anchor.STANDARD);
@@ -103,11 +84,9 @@ public class Carrier extends Robot {
             if (target_well != null) {
                 well_routine();
             } else {
-                if (rc.isMovementReady()) {
-                    // Cant find well, move randomly
-                    Direction dir = directions[rng.nextInt(directions.length)];
-                    move_towards(dir);
-                }
+                // Cant find well, move randomly
+                Direction dir = directions[rng.nextInt(directions.length)];
+                move_towards(dir);
             }
         }
 
@@ -125,9 +104,7 @@ public class Carrier extends Robot {
         if (rc.canCollectResource(target_well, 1)) {
             rc.collectResource(target_well, -1);
         } else {
-            if (rc.isMovementReady()) {
-                move_towards(target_well);
-            }
+            move_towards(target_well);
         }
     }
 
@@ -151,25 +128,21 @@ public class Carrier extends Robot {
             }
         }
         if (island != null) {
-            if (rc.isMovementReady()) {
-                move_towards(island);
-            }
+            move_towards(island);
             if (rc.canPlaceAnchor()) {
                 rc.setIndicatorString("Huzzah, placed anchor!");
                 rc.placeAnchor();
             }
         } else {
-            if (rc.isMovementReady()) {
-                // Cant find well, move randomly
-                Direction dir = directions[rng.nextInt(directions.length)];
-                move_towards(dir);
-            }
+            // Cant find well, move randomly
+            Direction dir = directions[rng.nextInt(directions.length)];
+            move_towards(dir);
         }
     }
 
     public void hq_routine() throws GameActionException {
         if (get_resource_count() == MAX_RESOURCES) {
-            // Resources full, pathfind to HQ
+            // Resources full, Pathfind to HQ
             if (rc.canTransferResource(built_by, ResourceType.ADAMANTIUM, 1)) {
                 rc.transferResource(built_by, ResourceType.ADAMANTIUM, rc.getResourceAmount(ResourceType.ADAMANTIUM));
             } else if (rc.canTransferResource(built_by, ResourceType.MANA, 1)) {
@@ -177,9 +150,7 @@ public class Carrier extends Robot {
             } else if (rc.canTransferResource(built_by, ResourceType.ELIXIR, 1)) {
                 rc.transferResource(built_by, ResourceType.ELIXIR, rc.getResourceAmount(ResourceType.ELIXIR));
             } else {
-                if (rc.isMovementReady()) {
-                    move_towards(built_by);
-                }
+                move_towards(built_by);
             }
             target_well = null;
         }
@@ -189,56 +160,14 @@ public class Carrier extends Robot {
         return rc.getResourceAmount(ResourceType.ADAMANTIUM) + rc.getResourceAmount(ResourceType.MANA) + rc.getResourceAmount(ResourceType.ELIXIR);
     }
 
-    // TODO: DO BETTER THAN THIS BAINDAID
-    @Override
-    public void move_towards(MapLocation loc) throws GameActionException {
-        MapLocation before = rc.getLocation();
-        super.move_towards(loc);
-        MapLocation after = rc.getLocation();
-        Direction dirTaken = before.directionTo(after);
-
-        Direction next = combatPathing.getDirection(loc);
-        MapLocation next_loc = after.add(next);
-        // Try to make a guess for a good next step
-        if (!next_loc.equals(before) && rc.canMove(next)) {
-            rc.move(next);
-        }
-        // Otherwise try taking the same direction as before..
-        if (rc.canMove(dirTaken)){
-            rc.move(dirTaken);
-        }
-        // If all else fails; see which tiles get us close to goal but not closer to start, go there
-        Direction best = Direction.CENTER;
-        int closest_dist = Integer.MAX_VALUE;
-        for (Direction d : directions) {
-            MapLocation l = after.add(d);
-            if (rc.canSenseLocation(l) && rc.canMove(d) && !before.equals(l)){
-                int dist = loc.distanceSquaredTo(l);
-                if (dist < closest_dist) {
-                    closest_dist = dist;
-                    best = d;
-                }
-            }
-        }
-        if (best != Direction.CENTER && rc.canMove(best)){
-            rc.move(best);
-        }
-    }
-
     @Override
     public void scan() throws GameActionException {
         if (Clock.getBytecodesLeft() < 100) return; // Check if we are nearly out of bytecode
 
         // Scan for wells and store them
         WellInfo[] wells = rc.senseNearbyWells();
-//        rc.setIndicatorString(Arrays.toString(wells));
         for (WellInfo well : wells) {
-            if (Clock.getBytecodesLeft() < 100) return; // Check if we are nearly out of bytecode
-
-            if (well.getResourceType() == resource && target_well == null) { // Go to the well of our type
-                target_well = well.getMapLocation();
-            }
-
+            if (Clock.getBytecodesLeft() < 400) return; // Check if we are nearly out of bytecode
             if (well.getResourceType() == resource && target_well != null) {
                 if (well.getMapLocation().distanceSquaredTo(rc.getLocation()) <= target_well.distanceSquaredTo(rc.getLocation())) {
                     target_well = well.getMapLocation();
@@ -250,7 +179,7 @@ public class Carrier extends Robot {
 
         RobotInfo[] hqs = rc.senseNearbyRobots(-1, enemy);
         for (RobotInfo hq : hqs) {
-            if (Clock.getBytecodesLeft() < 100) return; // Check if we are nearly out of bytecode
+            if (Clock.getBytecodesLeft() < 400) return; // Check if we are nearly out of bytecode
             if (hq.type == RobotType.HEADQUARTERS) {
                 int hq_code = encode_HQ_location(hq.getLocation());
                 store_hq_info(hq_code);

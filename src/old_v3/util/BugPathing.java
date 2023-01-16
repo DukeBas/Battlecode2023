@@ -1,4 +1,4 @@
-package _main.util;
+package old_v3.util;
 
 import battlecode.common.Direction;
 import battlecode.common.GameActionException;
@@ -58,7 +58,7 @@ public class BugPathing implements Pathfinding {
 
 
         // We cannot move closer so just wait?
-        rc.setIndicatorString("bug pathfinding done booboo, idk what do for target loc " + target);
+        rc.setIndicatorString("pathfinding done booboo, idk what do");
         return Direction.CENTER;
     }
 

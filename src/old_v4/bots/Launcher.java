@@ -1,6 +1,6 @@
-package _main.bots;
+package old_v4.bots;
 
-import _main.util.SimplePathing;
+import old_v4.util.SimplePathing;
 import battlecode.common.*;
 
 public class Launcher extends Robot {
@@ -9,11 +9,12 @@ public class Launcher extends Robot {
     Boolean squad = false;
     int HQ_id;
     int turnsInCombat = 0;
-
+    SimplePathing combatPathing;
 
     public Launcher(RobotController rc) throws GameActionException {
         super(rc);
         HQ_id = get_HQ_id(built_by);
+        combatPathing = new SimplePathing(rc);
     }
 
     /**
@@ -65,16 +66,9 @@ public class Launcher extends Robot {
             }
             RobotInfo[] enemies = rc.senseNearbyRobots(-1, enemy);
             int num_seen_enemy_combatants = 0;
-            int num_enemy_hqs = 0;
             for (RobotInfo r : enemies) {
                 RobotType type = r.getType();
-                switch (type){
-                    case LAUNCHER:
-                        num_seen_enemy_combatants++;
-                        break;
-                    case HEADQUARTERS:
-                        num_enemy_hqs++;
-                }
+                if (type == RobotType.LAUNCHER) num_seen_enemy_combatants++;
             }
             RobotInfo[] attackable_enemies = rc.senseNearbyRobots(RobotType.LAUNCHER.actionRadiusSquared, enemy);
             int num_attackable_enemy_combatants = 0;
@@ -83,8 +77,8 @@ public class Launcher extends Robot {
                 if (type == RobotType.LAUNCHER) num_attackable_enemy_combatants++;
             }
 
-            if (enemies.length - num_enemy_hqs > 0) {
-                // There's enemy combatants nearby!
+            if (num_seen_enemy_combatants > 0) {
+                // There's enemies nearby!
                 turnsInCombat++;
                 if (num_attackable_enemy_combatants > 1 || num_close_friendly_combatants < num_seen_enemy_combatants) {
                     // We are outnumbered! Retreat!
@@ -99,7 +93,7 @@ public class Launcher extends Robot {
                 } else if (num_seen_friendly_combatants - 2 > num_seen_enemy_combatants) {
                     // Move to enemy when ready
                     if (squad && Hq_target != null) {
-                        rc.setIndicatorString(num_seen_enemy_combatants + "Heading towards enemy HQ at " + Hq_target);
+                        rc.setIndicatorString("Heading towards enemy HQ at " + Hq_target);
                         move_towards(Hq_target);
                     } else {
                         move_towards(getGroupingLocation());
@@ -107,10 +101,10 @@ public class Launcher extends Robot {
                 }
 
                 // If there is one enemy is vision (but not attacking range), move in //TODO: just enough to strike first
-                if (num_attackable_enemy_combatants == 0 && num_seen_enemy_combatants == 1) {
+                if (num_attackable_enemy_combatants == 0 && num_seen_enemy_combatants == 1){
                     Direction dir = combatPathing.tryDirection(
                             rc.getLocation().directionTo(enemies[0].getLocation()));
-                    rc.setIndicatorString("trying to attack! Going to " + dir);
+                    rc.setIndicatorString("I'm outta here, so low. Going to " + dir);
                     if (rc.canMove(dir)) {
                         rc.move(dir);
                     }

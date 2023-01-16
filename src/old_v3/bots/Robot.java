@@ -1,7 +1,7 @@
-package _main.bots;
+package old_v3.bots;
 
 import battlecode.common.*;
-import _main.util.*;
+import old_v3.util.*;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -17,7 +17,6 @@ public abstract class Robot {
     Team enemy;
     MapLocation built_by;
     Pathfinding pathfinding;
-    SimplePathing combatPathing;
 
 
     /*
@@ -32,12 +31,11 @@ public abstract class Robot {
     // Indices for in the shared array
     static int RESERVED_SPOT_BOOLS = 0;
     static int START_INDEX_ROLE_ASSIGNMENT = RESERVED_SPOT_BOOLS + 1;
-    static int START_INDEX_ATTACK_TARGET = START_INDEX_ROLE_ASSIGNMENT + 1;
-    static int START_INDEX_FRIENDLY_HQS = START_INDEX_ATTACK_TARGET + 1;
+    static int START_INDEX_FRIENDLY_HQS = START_INDEX_ROLE_ASSIGNMENT + 1;
     static int START_INDEX_ENEMY_HQS = START_INDEX_FRIENDLY_HQS + MAX_HQS;
     static int START_INDEX_WELLS = START_INDEX_ENEMY_HQS + MAX_HQS;
 
-    // Indices <= 64 !!!
+    // #numRESERVERD_SPOTS(=1) + MAX_HQS*2 + MAX_WELLS <= 64 !!!
 
     /**
      * A random number generator.
@@ -62,15 +60,13 @@ public abstract class Robot {
         // Set the right pathfinding module for each bot
         switch (rc.getType()) {
             case HEADQUARTERS:
-                // Doesn't need pathfinding...
+                // Doesn't need pathfinding..
                 break;
             case LAUNCHER:
-//                // Has higher than 20 range...
-//                pathfinding = new BugPathing(rc);
-//                combatPathing = new SimplePathing(rc);
+                // Has higher than 20 range..
+                pathfinding = new BugPathing(rc);
             default:
                 pathfinding = new CombinedPDFS20Bug(rc);
-                combatPathing = new SimplePathing(rc);
         }
 
         hq_messages = new HashSet<>();
@@ -349,7 +345,7 @@ public abstract class Robot {
 
                         int read = rc.readSharedArray(i);
                         if (read == 0) { // we found an empty spot!
-//                            System.out.println("Writing " + m + " for HQ from " + decode_hq_location(m) + " to index " + i);
+                            System.out.println("Writing " + m + " for HQ from " + decode_hq_location(m) + " to index " + i);
                             rc.writeSharedArray(i, m);
                             break;
                         }
@@ -373,7 +369,7 @@ public abstract class Robot {
 
                         int read = rc.readSharedArray(i);
                         if (read == 0) { // we found an empty spot!
-//                            System.out.println("Writing " + m + " for " + decode_well_resourceType(m) + " well from " + decode_well_location(m) + " to index " + i);
+                            System.out.println("Writing " + m + " for " + decode_well_resourceType(m) + " well from " + decode_well_location(m) + " to index " + i);
                             rc.writeSharedArray(i, m);
                             break;
                         }
@@ -490,34 +486,6 @@ public abstract class Robot {
             }
         }
         return closest_hq;
-    }
-
-    public void attack() throws GameActionException {
-        // Get all possible options to attack
-        RobotInfo[] enemies = rc.senseNearbyRobots(rc.getType().actionRadiusSquared, enemy);
-
-        if (enemies.length > 0) {
-            RobotInfo toAttack = enemies[0];
-            int lowestHP = Integer.MAX_VALUE; // needs separate value as initial target might be HQ
-
-            for (RobotInfo r : enemies) {
-                RobotType type = r.getType();
-                if (type == RobotType.HEADQUARTERS) continue;
-
-                if ((type == toAttack.type && r.getHealth() < lowestHP) ||
-                        (type == RobotType.LAUNCHER && toAttack.type != RobotType.LAUNCHER) ||
-                        toAttack.getType() == RobotType.HEADQUARTERS) {
-                    lowestHP = r.getHealth();
-                    toAttack = r;
-                }
-            }
-
-            MapLocation loc = toAttack.getLocation();
-            if (rc.canAttack(loc)) {
-//                rc.setIndicatorString("Attacking");
-                rc.attack(loc);
-            }
-        }
     }
 
 }
