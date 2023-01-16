@@ -13,6 +13,9 @@ import static first_bot.util.Constants.directions;
 public class HQ extends Robot {
     int HQ_id = -1;
 
+    int mana_counter = 0;
+    int adamantium_counter = 0;
+
     MapLocation ownLocation;
     Map_helper map_helper;
     MapLocation[] friendly_HQs;
@@ -605,7 +608,7 @@ public class HQ extends Robot {
             tryToBuild(RobotType.LAUNCHER);
 
             // Let's try to build a carrier.
-            if (rng.nextBoolean()) {
+            if ((mana_counter < 8 || adamantium_counter > mana_counter) && adamantium_counter > 0) {
                 build_carrier(ResourceType.MANA);
             } else {
                 build_carrier(ResourceType.ADAMANTIUM);

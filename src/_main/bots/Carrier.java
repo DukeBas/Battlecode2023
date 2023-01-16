@@ -12,9 +12,11 @@ public class Carrier extends Robot {
     ResourceType resource;
     int HQ_id;
     MapLocation target_well = null;
+    MapLocation current_hq;
 
     public Carrier(RobotController rc) throws GameActionException {
         super(rc);
+        current_hq = built_by;
         HQ_id = get_HQ_id(built_by);
         resource = decode_HQ_resource_assignment(HQ_id);
         assign_carrier(ResourceType.NO_RESOURCE, HQ_id);
@@ -82,6 +84,7 @@ public class Carrier extends Robot {
             if (rc.canMove(dir)) {
                 rc.move(dir);
             }
+            reassign_hq(dir.opposite());
         }
 
         if (rc.canTakeAnchor(built_by, Anchor.STANDARD)) {
@@ -254,6 +257,30 @@ public class Carrier extends Robot {
             if (hq.type == RobotType.HEADQUARTERS) {
                 int hq_code = encode_HQ_location(hq.getLocation());
                 store_hq_info(hq_code);
+            }
+        }
+    }
+
+    public void reassign_hq(Direction enemy_direction) throws GameActionException {
+        if (rc.getLocation().directionTo(built_by) == enemy_direction) {
+            MapLocation closest_hq = null;
+            int min_dist = Integer.MAX_VALUE;
+            for (int i = START_INDEX_ENEMY_HQS; i < START_INDEX_ENEMY_HQS + MAX_HQS; i++) {
+                int hq_code = rc.readSharedArray(i);
+                if (hq_code == 0) {
+                    break;
+                }
+                MapLocation hq_loc = decode_hq_location(hq_code);
+                int distance = hq_loc.distanceSquaredTo(rc.getLocation());
+                if (distance < min_dist && rc.getLocation().directionTo(hq_loc) != enemy_direction) {
+                    closest_hq = hq_loc;
+                    min_dist = distance;
+                }
+            }
+            if (closest_hq != null) {
+                current_hq = closest_hq;
+            } else {
+                rc.setIndicatorString("tried to defect uwu but failed");
             }
         }
     }
