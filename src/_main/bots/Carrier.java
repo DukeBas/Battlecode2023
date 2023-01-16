@@ -193,15 +193,15 @@ public class Carrier extends Robot {
     public void hq_routine() throws GameActionException {
         if (get_resource_count() == MAX_RESOURCES) {
             // Resources full, pathfind to HQ
-            if (rc.canTransferResource(built_by, ResourceType.ADAMANTIUM, 1)) {
-                rc.transferResource(built_by, ResourceType.ADAMANTIUM, rc.getResourceAmount(ResourceType.ADAMANTIUM));
-            } else if (rc.canTransferResource(built_by, ResourceType.MANA, 1)) {
-                rc.transferResource(built_by, ResourceType.MANA, rc.getResourceAmount(ResourceType.MANA));
-            } else if (rc.canTransferResource(built_by, ResourceType.ELIXIR, 1)) {
-                rc.transferResource(built_by, ResourceType.ELIXIR, rc.getResourceAmount(ResourceType.ELIXIR));
+            if (rc.canTransferResource(current_hq, ResourceType.ADAMANTIUM, 1)) {
+                rc.transferResource(current_hq, ResourceType.ADAMANTIUM, rc.getResourceAmount(ResourceType.ADAMANTIUM));
+            } else if (rc.canTransferResource(current_hq, ResourceType.MANA, 1)) {
+                rc.transferResource(current_hq, ResourceType.MANA, rc.getResourceAmount(ResourceType.MANA));
+            } else if (rc.canTransferResource(current_hq, ResourceType.ELIXIR, 1)) {
+                rc.transferResource(current_hq, ResourceType.ELIXIR, rc.getResourceAmount(ResourceType.ELIXIR));
             } else {
                 if (rc.isMovementReady()) {
-                    move_towards(built_by);
+                    move_towards(current_hq);
                 }
             }
             target_well = null;
@@ -282,22 +282,27 @@ public class Carrier extends Robot {
     }
 
     public void reassign_hq(Direction enemy_direction) throws GameActionException {
-        if (rc.getLocation().directionTo(built_by) == enemy_direction) {
+        if (rc.getLocation().directionTo(current_hq) == enemy_direction ||
+                rc.senseNearbyRobots(current_hq, 2, enemy).length > 0) {
+            rc.setIndicatorString("Checking reassign?");
             MapLocation closest_hq = null;
             int min_dist = Integer.MAX_VALUE;
-            for (int i = START_INDEX_ENEMY_HQS; i < START_INDEX_ENEMY_HQS + MAX_HQS; i++) {
+            for (int i = START_INDEX_FRIENDLY_HQS; i < START_INDEX_FRIENDLY_HQS + MAX_HQS; i++) {
                 int hq_code = rc.readSharedArray(i);
                 if (hq_code == 0) {
                     break;
                 }
                 MapLocation hq_loc = decode_hq_location(hq_code);
                 int distance = hq_loc.distanceSquaredTo(rc.getLocation());
-                if (distance < min_dist && rc.getLocation().directionTo(hq_loc) != enemy_direction) {
+                if (distance < min_dist &&
+                        rc.getLocation().directionTo(hq_loc) != enemy_direction &&
+                        hq_loc != current_hq) {
                     closest_hq = hq_loc;
                     min_dist = distance;
                 }
             }
             if (closest_hq != null) {
+                rc.setIndicatorString("Defected from " + current_hq + " to " + closest_hq);
                 current_hq = closest_hq;
             } else {
                 rc.setIndicatorString("tried to defect uwu but failed");
