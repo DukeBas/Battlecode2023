@@ -608,7 +608,7 @@ public class HQ extends Robot {
             tryToBuild(RobotType.LAUNCHER);
 
             // Let's try to build a carrier.
-            if ((mana_counter < 8 || adamantium_counter > mana_counter) && adamantium_counter > 0) {
+            if ((mana_counter < 8 || adamantium_counter > mana_counter) && adamantium_counter > 1) {
                 build_carrier(ResourceType.MANA);
             } else {
                 build_carrier(ResourceType.ADAMANTIUM);
