@@ -54,25 +54,25 @@ public class HQ extends Robot {
                 get_enemy_hq_locs();
                 break;
             default:
-            //TODO: If at least one, but not all, enemy HQs have been found, check symmetry again on that
-    
-    
-            // Set a new attack target every so often
-            // TODO: make more robust; don't just use rotational, use all information already available
-            int round = rc.getRoundNum();
-            if (HQ_id == 0 && round % 200 == 0){
-                int index = (round / 200) % friendly_HQs.length;
-                rc.writeSharedArray(
-                        START_INDEX_ATTACK_TARGET,
-                        encode_HQ_location(map_helper.rotationalSymmetricLocation(friendly_HQs[index])));
-            }
+                //TODO: If at least one, but not all, enemy HQs have been found, check symmetry again on that
+
+
+                // Set a new attack target every so often
+                // TODO: make more robust; don't just use rotational, use all information already available
+                int round = rc.getRoundNum();
+                if (HQ_id == 0 && round % 150 == 5) {
+                    int index = (round / 150) % friendly_HQs.length;
+                    rc.writeSharedArray(
+                            START_INDEX_ATTACK_TARGET,
+                            encode_HQ_location(map_helper.rotationalSymmetricLocation(friendly_HQs[index])));
+                }
         }
 
         /*
             Unit building
          */
 
-         // assign carrier from last round
+        // assign carrier from last round
         assign_carrier(latest_carrier, HQ_id);
         if (rc.senseNearbyRobots(RobotType.HEADQUARTERS.visionRadiusSquared, friendly).length < 35) {
             // Let's try to build a launcher.
@@ -119,7 +119,7 @@ public class HQ extends Robot {
 
         // Try all directions to find one to build in
         Direction best_dir = Direction.CENTER;
-        MapLocation center = new MapLocation(rc.getMapWidth()/2, rc.getMapHeight()/2);
+        MapLocation center = new MapLocation(rc.getMapWidth() / 2, rc.getMapHeight() / 2);
         int build_score = -999;
         for (Direction d : directions) {
             MapLocation loc = ownLocation.add(d);
@@ -713,14 +713,14 @@ public class HQ extends Robot {
     }
 }
 
-        // Uncomment below to see shared array for every turn!
+// Uncomment below to see shared array for every turn!
 //        int[] arr = new int[64];
 //        for (int i = 0; i < 64; i++) {
 //            arr[i] = rc.readSharedArray(i);
 //        }
 //        System.out.println(Arrays.toString(arr));
 
-        // Uncomment to try out how much bytecode something costs
+// Uncomment to try out how much bytecode something costs
 //                int before = Clock.getBytecodesLeft();
 //
 //
