@@ -212,7 +212,7 @@ public class Carrier extends Robot {
         int closest_dist = Integer.MAX_VALUE;
         for (Direction d : directions) {
             MapLocation l = after.add(d);
-            if (rc.canSenseLocation(l) && rc.canMove(d) && before.distanceSquaredTo(l) > 1){
+            if (rc.canSenseLocation(l) && rc.canMove(d) && !before.equals(l)){
                 int dist = loc.distanceSquaredTo(l);
                 if (dist < closest_dist) {
                     closest_dist = dist;
