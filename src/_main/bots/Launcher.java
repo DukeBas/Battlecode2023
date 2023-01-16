@@ -1,12 +1,10 @@
 package _main.bots;
 
-import _main.util.SimplePathing;
 import battlecode.common.*;
 
 public class Launcher extends Robot {
 
-    MapLocation Hq_target = null;
-    Boolean squad = false;
+    MapLocation target_location = null;
     int HQ_id;
     int turnsInCombat = 0;
 
@@ -25,22 +23,20 @@ public class Launcher extends Robot {
     void run() throws GameActionException {
         attack();
 
-        // Check if we are in a squad
-        if (get_number_of_launchers() > 1 || squad) {
-            squad = true;
+
 
             MapLocation nearest_known_HQ = get_nearest_enemy_HQ();
 
             if (nearest_known_HQ != null) {
-                Hq_target = nearest_known_HQ;
+                target_location = nearest_known_HQ;
             } else {
                 // Is there a global target?
                 int read = rc.readSharedArray(START_INDEX_ATTACK_TARGET);
                 if (read != 0){
-                    Hq_target = decode_hq_location(read);
+                    target_location = decode_hq_location(read);
                 }
             }
-        }
+
 
         /*
         Movement plan:
@@ -78,12 +74,19 @@ public class Launcher extends Robot {
             }
             RobotInfo[] attackable_enemies = rc.senseNearbyRobots(RobotType.LAUNCHER.actionRadiusSquared, enemy);
             int num_attackable_enemy_combatants = 0;
+            int num_enemy_HQs_in_attack_range = 0;
             for (RobotInfo r : attackable_enemies) {
                 RobotType type = r.getType();
-                if (type == RobotType.LAUNCHER) num_attackable_enemy_combatants++;
+                switch (type){
+                    case LAUNCHER:
+                        num_attackable_enemy_combatants++;
+                        break;
+                    case HEADQUARTERS:
+                        num_enemy_HQs_in_attack_range++;
+                }
             }
 
-            if (enemies.length - num_enemy_hqs > 0) {
+            if (attackable_enemies.length - num_enemy_HQs_in_attack_range > 0) {
                 // There's enemy combatants nearby!
                 turnsInCombat++;
                 if (num_attackable_enemy_combatants > 1 || num_close_friendly_combatants < num_seen_enemy_combatants) {
@@ -98,9 +101,9 @@ public class Launcher extends Robot {
 
                 } else if (num_seen_friendly_combatants - 2 > num_seen_enemy_combatants) {
                     // Move to enemy when ready
-                    if (squad && Hq_target != null) {
-                        rc.setIndicatorString(num_seen_enemy_combatants + "Heading towards enemy HQ at " + Hq_target);
-                        move_towards(Hq_target);
+                    if (target_location != null) {
+                        rc.setIndicatorString(num_seen_enemy_combatants + "Heading towards enemy HQ at " + target_location);
+                        move_towards(target_location);
                     } else {
                         move_towards(getGroupingLocation());
                     }
@@ -121,9 +124,9 @@ public class Launcher extends Robot {
                 // No enemies nearby, do normal movement
                 turnsInCombat = 0;
                 // Move to enemy when ready
-                if (squad && Hq_target != null) {
-                    rc.setIndicatorString("Heading towards enemy HQ at " + Hq_target);
-                    move_towards(Hq_target);
+                if (target_location != null) {
+                    rc.setIndicatorString("Heading towards enemy HQ at " + target_location);
+                    move_towards(target_location);
                 } else {
                     move_towards(getGroupingLocation());
                 }
@@ -136,18 +139,6 @@ public class Launcher extends Robot {
         }
 
         scan();
-    }
-
-    public int get_number_of_launchers() throws GameActionException {
-        int count = 0;
-        // Get launchers at grouping position
-        RobotInfo[] robots = rc.senseNearbyRobots(getGroupingLocation(), 2, friendly);
-        for (RobotInfo robot : robots) {
-            if (robot.getType() == RobotType.LAUNCHER) {
-                count++;
-            }
-        }
-        return count;
     }
 
 

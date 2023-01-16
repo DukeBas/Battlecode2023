@@ -56,15 +56,35 @@ public class Carrier extends Robot {
             }
         }
 
-        // If early game, when you can kill an enemy, spend exactly that amount of resources to do it
-        if (rc.getRoundNum() < 50 && rc.isActionReady()) {
-            RobotInfo[] attackable = rc.senseNearbyRobots(RobotType.CARRIER.actionRadiusSquared, enemy);
+        // Kill an enemy if you can
+        if (rc.isActionReady()) {
+            RobotInfo[] enemies = rc.senseNearbyRobots(-1, enemy);
             int max_damage = getCarrierDamage(get_resource_count());
-            for (RobotInfo r : attackable) {
+            for (RobotInfo r : enemies) {
+                if (r.getType() != RobotType.LAUNCHER) continue;
+
+                MapLocation loc = r.getLocation();
                 if (r.getHealth() < max_damage) {
-                    MapLocation loc = r.getLocation();
-                    if (rc.canAttack(loc)) {
-                        rc.attack(loc);
+                    if (ownLocation.distanceSquaredTo(loc) <= ownType.actionRadiusSquared) {
+                        if (rc.canAttack(loc)) {
+                            rc.attack(loc);
+                        }
+                    } else {
+                        // Could we kill it by taking one step towards it and attacking?
+                        if (!rc.isMovementReady()) continue;
+
+                        Direction dirToEnemy = combatPathing.tryDirection(ownLocation.directionTo(loc));
+                        MapLocation closerLoc = ownLocation.add(dirToEnemy);
+                        if (closerLoc.distanceSquaredTo(loc) <= ownType.actionRadiusSquared) {
+                            if (rc.canMove(dirToEnemy)) {
+                                rc.move(dirToEnemy);
+                                if (rc.canAttack(loc)) {
+                                    rc.attack(loc);
+                                }
+                            } else {
+                                rc.setIndicatorString("VERY SAD " + rc.senseRobotAtLocation(closerLoc));
+                            }
+                        }
                     }
                 }
             }
@@ -173,15 +193,15 @@ public class Carrier extends Robot {
     public void hq_routine() throws GameActionException {
         if (get_resource_count() == MAX_RESOURCES) {
             // Resources full, pathfind to HQ
-            if (rc.canTransferResource(built_by, ResourceType.ADAMANTIUM, 1)) {
-                rc.transferResource(built_by, ResourceType.ADAMANTIUM, rc.getResourceAmount(ResourceType.ADAMANTIUM));
-            } else if (rc.canTransferResource(built_by, ResourceType.MANA, 1)) {
-                rc.transferResource(built_by, ResourceType.MANA, rc.getResourceAmount(ResourceType.MANA));
-            } else if (rc.canTransferResource(built_by, ResourceType.ELIXIR, 1)) {
-                rc.transferResource(built_by, ResourceType.ELIXIR, rc.getResourceAmount(ResourceType.ELIXIR));
+            if (rc.canTransferResource(current_hq, ResourceType.ADAMANTIUM, 1)) {
+                rc.transferResource(current_hq, ResourceType.ADAMANTIUM, rc.getResourceAmount(ResourceType.ADAMANTIUM));
+            } else if (rc.canTransferResource(current_hq, ResourceType.MANA, 1)) {
+                rc.transferResource(current_hq, ResourceType.MANA, rc.getResourceAmount(ResourceType.MANA));
+            } else if (rc.canTransferResource(current_hq, ResourceType.ELIXIR, 1)) {
+                rc.transferResource(current_hq, ResourceType.ELIXIR, rc.getResourceAmount(ResourceType.ELIXIR));
             } else {
                 if (rc.isMovementReady()) {
-                    move_towards(built_by);
+                    move_towards(current_hq);
                 }
             }
             target_well = null;
@@ -207,7 +227,7 @@ public class Carrier extends Robot {
             rc.move(next);
         }
         // Otherwise try taking the same direction as before..
-        if (rc.canMove(dirTaken)){
+        if (rc.canMove(dirTaken)) {
             rc.move(dirTaken);
         }
         // If all else fails; see which tiles get us close to goal but not closer to start, go there
@@ -215,7 +235,7 @@ public class Carrier extends Robot {
         int closest_dist = Integer.MAX_VALUE;
         for (Direction d : directions) {
             MapLocation l = after.add(d);
-            if (rc.canSenseLocation(l) && rc.canMove(d) && !before.equals(l)){
+            if (rc.canSenseLocation(l) && rc.canMove(d) && !before.equals(l)) {
                 int dist = loc.distanceSquaredTo(l);
                 if (dist < closest_dist) {
                     closest_dist = dist;
@@ -223,7 +243,7 @@ public class Carrier extends Robot {
                 }
             }
         }
-        if (best != Direction.CENTER && rc.canMove(best)){
+        if (best != Direction.CENTER && rc.canMove(best)) {
             rc.move(best);
         }
     }
@@ -262,7 +282,9 @@ public class Carrier extends Robot {
     }
 
     public void reassign_hq(Direction enemy_direction) throws GameActionException {
-        if (rc.getLocation().directionTo(built_by) == enemy_direction) {
+        if (rc.getLocation().directionTo(current_hq) == enemy_direction ||
+                rc.senseNearbyRobots(current_hq, 2, enemy).length > 0) {
+            rc.setIndicatorString("Checking reassign?");
             MapLocation closest_hq = null;
             int min_dist = Integer.MAX_VALUE;
             for (int i = START_INDEX_FRIENDLY_HQS; i < START_INDEX_FRIENDLY_HQS + MAX_HQS; i++) {
@@ -272,12 +294,15 @@ public class Carrier extends Robot {
                 }
                 MapLocation hq_loc = decode_hq_location(hq_code);
                 int distance = hq_loc.distanceSquaredTo(rc.getLocation());
-                if (distance < min_dist && rc.getLocation().directionTo(hq_loc) != enemy_direction) {
+                if (distance < min_dist &&
+                        rc.getLocation().directionTo(hq_loc) != enemy_direction &&
+                        hq_loc != current_hq) {
                     closest_hq = hq_loc;
                     min_dist = distance;
                 }
             }
             if (closest_hq != null) {
+                rc.setIndicatorString("Defected from " + current_hq + " to " + closest_hq);
                 current_hq = closest_hq;
             } else {
                 rc.setIndicatorString("tried to defect uwu but failed");
