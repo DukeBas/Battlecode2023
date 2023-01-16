@@ -8,6 +8,8 @@ import _main.util.PseudoDFS20;
 import java.util.Arrays;
 import java.util.HashSet;
 
+import javax.annotation.Resource;
+
 import static first_bot.util.Constants.directions;
 
 public class HQ extends Robot {
@@ -19,6 +21,8 @@ public class HQ extends Robot {
     MapLocation ownLocation;
     Map_helper map_helper;
     MapLocation[] friendly_HQs;
+
+    ResourceType latest_carrier = ResourceType.NO_RESOURCE;
 
     public HQ(RobotController rc) {
         super(rc);
@@ -64,38 +68,23 @@ public class HQ extends Robot {
             }
         }
 
-        // Uncomment below to see shared array for every turn!
-       int[] arr = new int[64];
-       for (int i = 0; i < 64; i++) {
-           arr[i] = rc.readSharedArray(i);
-       }
-       System.out.println(Arrays.toString(arr));
-
-        // Uncomment to try out how much bytecode something costs
-        int before = Clock.getBytecodesLeft();
-
-
-        int after = Clock.getBytecodesLeft();
-        int diff = before - after;
-        System.out.println("USED " + diff + " BYTECODE" + (turnCountStart != turnCount ? ", WENT OVER LIMIT!!!" : ""));
-        if (diff > mostBytecodeExtracted) {
-            mostBytecodeExtracted = diff;
-            System.out.println("new bytecode record :(  " + diff);
-        }
-
-
         /*
             Unit building
          */
+
+         // assign carrier from last round
+        assign_carrier(latest_carrier, HQ_id);
         if (rc.senseNearbyRobots(RobotType.HEADQUARTERS.visionRadiusSquared, friendly).length < 35) {
             // Let's try to build a launcher.
             tryToBuild(RobotType.LAUNCHER);
 
             // Let's try to build a carrier.
-            if ((mana_counter < 8 || adamantium_counter > mana_counter) && adamantium_counter > 1) {
+            if ((mana_counter < 8 || adamantium_counter > mana_counter) && adamantium_counter > 0) {
                 build_carrier(ResourceType.MANA);
+                latest_carrier = ResourceType.MANA;
             } else {
                 build_carrier(ResourceType.ADAMANTIUM);
+                latest_carrier = ResourceType.ADAMANTIUM;
             }
         } else if (rc.canBuildAnchor(Anchor.STANDARD)) {
             // If we can build an anchor do it!
@@ -125,8 +114,8 @@ public class HQ extends Robot {
     }
 
 
-    public void tryToBuild(RobotType type) throws GameActionException {
-        if (!rc.isActionReady()) return; // Do not even try to build if it's not possible
+    public boolean tryToBuild(RobotType type) throws GameActionException {
+        if (!rc.isActionReady()) return false; // Do not even try to build if it's not possible
 
         // Try all directions to find one to build in
         Direction best_dir = Direction.CENTER;
@@ -150,64 +139,30 @@ public class HQ extends Robot {
 
         // Check if we have found a valid spot to build in
         if (best_dir == Direction.CENTER) {
-            return;
+            return false;
         }
         MapLocation buildLocation = rc.getLocation().add(best_dir);
 
         rc.setIndicatorString("Trying to build a " + type.toString());
         if (rc.canBuildRobot(type, buildLocation)) {
             rc.buildRobot(type, buildLocation);
+            return true;
         }
-    }
-
-    public void tryToBuild(RobotType type, ResourceType resource) throws GameActionException {
-        if (!rc.isActionReady()) return; // Do not even try to build if it's not possible
-
-        // Try all directions to find one to build in
-        Direction best_dir = Direction.CENTER;
-        MapLocation center = new MapLocation(rc.getMapWidth()/2, rc.getMapHeight()/2);
-        int build_score = -999;
-        for (Direction d : directions) {
-            MapLocation loc = ownLocation.add(d);
-            if (rc.canSenseLocation(loc) && !rc.isLocationOccupied(loc) && rc.sensePassability(loc)) {
-                MapInfo info = rc.senseMapInfo(loc);
-                int score = (-(info.hasCloud() ? 20 : 0))
-                        - (info.getCurrentDirection() != null ? 10 : 0)
-                        - center.distanceSquaredTo(loc); // Prefer building towards center of map
-
-                // we can build on this spot! Is it better?
-                if (score > build_score) {
-                    build_score = score;
-                    best_dir = d;
-                }
-            }
-        }
-
-        // Check if we have found a valid spot to build in
-        if (best_dir == Direction.CENTER) {
-            return;
-        }
-        MapLocation buildLocation = rc.getLocation().add(best_dir);
-
-        rc.setIndicatorString("Trying to build a " + type.toString());
-        if (rc.canBuildRobot(type, buildLocation)) {
-            rc.buildRobot(type, buildLocation);
-            if (resource == ResourceType.ADAMANTIUM) {
-                adamantium_counter++;
-            } else {
-                mana_counter++;
-            }
-        }
+        return false;
     }
 
     // Build carrier of certain resource type
     void build_carrier(ResourceType type) throws GameActionException {
-        assign_carrier(type, HQ_id);
-
         // Check if there is a well nearby of this type
         WellInfo[] wells = rc.senseNearbyWells(type);
         if (wells.length == 0) {
-            tryToBuild(RobotType.CARRIER, type);
+            if (tryToBuild(RobotType.CARRIER)) {
+                if (type == ResourceType.ADAMANTIUM) {
+                    adamantium_counter++;
+                } else {
+                    mana_counter++;
+                }
+            }
             return;
         }
         // Sort wells so we can build towards the closest one
@@ -757,3 +712,22 @@ public class HQ extends Robot {
         }
     }
 }
+
+        // Uncomment below to see shared array for every turn!
+//        int[] arr = new int[64];
+//        for (int i = 0; i < 64; i++) {
+//            arr[i] = rc.readSharedArray(i);
+//        }
+//        System.out.println(Arrays.toString(arr));
+
+        // Uncomment to try out how much bytecode something costs
+//                int before = Clock.getBytecodesLeft();
+//
+//
+//                int after = Clock.getBytecodesLeft();
+//                int diff = before - after;
+////                System.out.println("USED " + diff + " BYTECODE" + (turnCountStart != turnCount ? ", WENT OVER LIMIT!!!" : ""));
+//                if (diff > mostBytecodeExtracted) {
+//                    mostBytecodeExtracted = diff;
+//                    System.out.println("new bytecode record :(  " + diff);
+//                }
