@@ -56,15 +56,39 @@ public class Carrier extends Robot {
             }
         }
 
-        // If early game, when you can kill an enemy, spend exactly that amount of resources to do it
-        if (rc.getRoundNum() < 50 && rc.isActionReady()) {
-            RobotInfo[] attackable = rc.senseNearbyRobots(RobotType.CARRIER.actionRadiusSquared, enemy);
+        // Kill an enemy if you can
+        if (rc.isActionReady()) {
+            RobotInfo[] enemies = rc.senseNearbyRobots(-1, enemy);
             int max_damage = getCarrierDamage(get_resource_count());
-            for (RobotInfo r : attackable) {
+            for (RobotInfo r : enemies) {
+                if (r.getType() != RobotType.LAUNCHER) continue;
+
+                MapLocation loc = r.getLocation();
                 if (r.getHealth() < max_damage) {
-                    MapLocation loc = r.getLocation();
-                    if (rc.canAttack(loc)) {
-                        rc.attack(loc);
+                    if (ownLocation.distanceSquaredTo(loc) <= ownType.actionRadiusSquared) {
+                        if (rc.canAttack(loc)) {
+                            rc.attack(loc);
+                        }
+                    } else {
+                        // Could we kill it by taking one step towards it and attacking?
+                        if (!rc.isMovementReady()) continue;
+
+                        Direction dirToEnemy = combatPathing.tryDirection(ownLocation.directionTo(loc));
+                        MapLocation closerLoc = ownLocation.add(dirToEnemy);
+                        if (closerLoc.distanceSquaredTo(loc) <= ownType.actionRadiusSquared) {
+                            rc.setIndicatorDot(ownLocation, 123, 0, 250);
+                            rc.setIndicatorDot(loc, 123, 0, 250);
+                            rc.setIndicatorDot(closerLoc, 123, 0, 250);
+                            System.out.println("HAPPENEED");
+                            if (rc.canMove(dirToEnemy)) {
+                                rc.move(dirToEnemy);
+                                if (rc.canAttack(loc)) {
+                                    rc.attack(loc);
+                                }
+                            } else {
+                                rc.setIndicatorString("VERY SAD " + rc.senseRobotAtLocation(closerLoc));
+                            }
+                        }
                     }
                 }
             }
@@ -207,7 +231,7 @@ public class Carrier extends Robot {
             rc.move(next);
         }
         // Otherwise try taking the same direction as before..
-        if (rc.canMove(dirTaken)){
+        if (rc.canMove(dirTaken)) {
             rc.move(dirTaken);
         }
         // If all else fails; see which tiles get us close to goal but not closer to start, go there
@@ -215,7 +239,7 @@ public class Carrier extends Robot {
         int closest_dist = Integer.MAX_VALUE;
         for (Direction d : directions) {
             MapLocation l = after.add(d);
-            if (rc.canSenseLocation(l) && rc.canMove(d) && !before.equals(l)){
+            if (rc.canSenseLocation(l) && rc.canMove(d) && !before.equals(l)) {
                 int dist = loc.distanceSquaredTo(l);
                 if (dist < closest_dist) {
                     closest_dist = dist;
@@ -223,7 +247,7 @@ public class Carrier extends Robot {
                 }
             }
         }
-        if (best != Direction.CENTER && rc.canMove(best)){
+        if (best != Direction.CENTER && rc.canMove(best)) {
             rc.move(best);
         }
     }
