@@ -4,6 +4,8 @@ import battlecode.common.*;
 import _main.util.*;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Random;
@@ -27,8 +29,11 @@ public abstract class Robot {
     // Sets that hold messages that we could not send before
     HashSet<Integer> hq_messages;
     HashSet<Integer> well_messages;
+    HashMap<Integer, Integer> island_messages;
     static int MAX_WELLS = 16;
     static int MAX_HQS = 4; // accounts only for one team, so max HQ 4 means 8 HQs in total on the map
+    // TODO: make use less slots if needed
+    static int MAX_ISLANDS = 34;
 
     // Indices for in the shared array
     static int RESERVED_SPOT_BOOLS = 0;
@@ -37,6 +42,7 @@ public abstract class Robot {
     static int START_INDEX_FRIENDLY_HQS = START_INDEX_ATTACK_TARGET + 1;
     static int START_INDEX_ENEMY_HQS = START_INDEX_FRIENDLY_HQS + MAX_HQS;
     static int START_INDEX_WELLS = START_INDEX_ENEMY_HQS + MAX_HQS;
+    static int START_INDEX_ISLANDS = START_INDEX_WELLS + MAX_WELLS;
 
     // Indices <= 64 !!!
 
@@ -190,6 +196,72 @@ public abstract class Robot {
                 store_hq_info(hq_code);
             }
         }
+
+        int[] island_ids = rc.senseNearbyIslands();
+        for (int id : island_ids) {
+            if (Clock.getBytecodesLeft() < 200) return;
+            if (rc.readSharedArray(id + START_INDEX_ISLANDS - 1) == 0) {
+                int code = encode_island(id);
+                if (rc.canWriteSharedArray(id + START_INDEX_ISLANDS - 1, code)) {
+                    rc.writeSharedArray(id + START_INDEX_ISLANDS - 1, code);
+                } else {
+                    island_messages.put(id, code);
+                }
+            }
+        }
+    }
+
+    public int encode_island(int id) throws GameActionException {
+
+        MapLocation[] island_locs = rc.senseNearbyIslandLocations(id);
+        MapLocation island = null;
+        int min_dist = Integer.MAX_VALUE;
+        for (MapLocation island_loc : island_locs) {
+            int distance = island_loc.distanceSquaredTo(rc.getLocation());
+            if (distance < min_dist) {
+                min_dist = distance;
+                island = island_loc;
+            }
+        }
+
+        int island_code = 0;
+        if (rc.senseTeamOccupyingIsland(id) == friendly) {
+            island_code += 1 << 14;
+        } else if (rc.senseTeamOccupyingIsland(id) == enemy) {
+            island_code += 2 << 14;
+        } else {
+            island_code += 3 << 14;
+        }
+
+        island_code += island.x << 7;
+        island_code += island.y;
+
+        return island_code;
+    }
+
+    public MapLocation decode_island_loc(int code) throws GameActionException {
+        return decode_well_location(code);
+    }
+
+    public Team decode_island_team(int code) throws GameActionException {
+        int int_code = (code & 0b1100000000000000) >> 14;
+        Team team = null;
+        switch (int_code) {
+            case 1:
+                team = friendly;
+                break;
+            case 2:
+                team = enemy;
+                break;
+            case 3:
+                team = Team.NEUTRAL;
+                break;
+            default:
+                team = null;
+                break;
+        }
+
+        return team;
     }
 
     // Convert well info into binary, then into decimal and return
@@ -382,7 +454,17 @@ public abstract class Robot {
                 }
                 well_messages.clear();
             }
-        }
+
+            if (!island_messages.isEmpty()) {
+                for (Map.Entry<Integer, Integer> set : island_messages.entrySet()) {
+                    int id = set.getKey();
+                    int code = set.getValue();
+                    if (rc.canWriteSharedArray(id + START_INDEX_ISLANDS - 1, code)) {
+                        rc.writeSharedArray(id + START_INDEX_ISLANDS - 1, code);
+                        island_messages.remove(id);
+                }
+            }
+         }
     }
 
     // Save a boolean to the shared array
