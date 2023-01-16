@@ -657,6 +657,46 @@ public class HQ extends Robot {
         }
     }
 
+    public void tryToBuild(RobotType type, ResourceType resource) throws GameActionException {
+        if (!rc.isActionReady()) return; // Do not even try to build if it's not possible
+
+        // Try all directions to find one to build in
+        Direction best_dir = Direction.CENTER;
+        MapLocation center = new MapLocation(rc.getMapWidth()/2, rc.getMapHeight()/2);
+        int build_score = -999;
+        for (Direction d : directions) {
+            MapLocation loc = ownLocation.add(d);
+            if (rc.canSenseLocation(loc) && !rc.isLocationOccupied(loc) && rc.sensePassability(loc)) {
+                MapInfo info = rc.senseMapInfo(loc);
+                int score = (-(info.hasCloud() ? 20 : 0))
+                        - (info.getCurrentDirection() != null ? 10 : 0)
+                        - center.distanceSquaredTo(loc); // Prefer building towards center of map
+
+                // we can build on this spot! Is it better?
+                if (score > build_score) {
+                    build_score = score;
+                    best_dir = d;
+                }
+            }
+        }
+
+        // Check if we have found a valid spot to build in
+        if (best_dir == Direction.CENTER) {
+            return;
+        }
+        MapLocation buildLocation = rc.getLocation().add(best_dir);
+
+        rc.setIndicatorString("Trying to build a " + type.toString());
+        if (rc.canBuildRobot(type, buildLocation)) {
+            rc.buildRobot(type, buildLocation);
+            if (resource == ResourceType.ADAMANTIUM) {
+                adamantium_counter++;
+            } else {
+                mana_counter++;
+            }
+        }
+    }
+
     // Build carrier of certain resource type
     void build_carrier(ResourceType type) throws GameActionException {
         assign_carrier(type, HQ_id);
@@ -664,7 +704,7 @@ public class HQ extends Robot {
         // Check if there is a well nearby of this type
         WellInfo[] wells = rc.senseNearbyWells(type);
         if (wells.length == 0) {
-            tryToBuild(RobotType.CARRIER);
+            tryToBuild(RobotType.CARRIER, type);
             return;
         }
         // Sort wells so we can build towards the closest one
@@ -700,6 +740,12 @@ public class HQ extends Robot {
         rc.setIndicatorString("Trying to build a " + type + " carrier");
         if (rc.canBuildRobot(RobotType.CARRIER, buildLocation)) {
             rc.buildRobot(RobotType.CARRIER, buildLocation);
+
+            if (type == ResourceType.ADAMANTIUM) {
+                adamantium_counter++;
+            } else {
+                mana_counter++;
+            }
         }
     }
 }
