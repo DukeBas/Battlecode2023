@@ -265,7 +265,7 @@ public class Carrier extends Robot {
         if (rc.getLocation().directionTo(built_by) == enemy_direction) {
             MapLocation closest_hq = null;
             int min_dist = Integer.MAX_VALUE;
-            for (int i = START_INDEX_ENEMY_HQS; i < START_INDEX_ENEMY_HQS + MAX_HQS; i++) {
+            for (int i = START_INDEX_FRIENDLY_HQS; i < START_INDEX_FRIENDLY_HQS + MAX_HQS; i++) {
                 int hq_code = rc.readSharedArray(i);
                 if (hq_code == 0) {
                     break;
