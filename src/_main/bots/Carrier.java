@@ -76,10 +76,6 @@ public class Carrier extends Robot {
                         Direction dirToEnemy = combatPathing.tryDirection(ownLocation.directionTo(loc));
                         MapLocation closerLoc = ownLocation.add(dirToEnemy);
                         if (closerLoc.distanceSquaredTo(loc) <= ownType.actionRadiusSquared) {
-                            rc.setIndicatorDot(ownLocation, 123, 0, 250);
-                            rc.setIndicatorDot(loc, 123, 0, 250);
-                            rc.setIndicatorDot(closerLoc, 123, 0, 250);
-                            System.out.println("HAPPENEED");
                             if (rc.canMove(dirToEnemy)) {
                                 rc.move(dirToEnemy);
                                 if (rc.canAttack(loc)) {
