@@ -154,7 +154,7 @@ public class Launcher extends Robot {
                 } else if (num_seen_friendly_combatants - 2 > num_seen_enemy_combatants && turnsInCombat >= 3) {
                     // Move to enemy when ready
                     if (target_location != null) {
-                        rc.setIndicatorString(num_seen_enemy_combatants + "Heading towards enemy HQ at " + target_location);
+                        rc.setIndicatorString(num_seen_enemy_combatants + "Heading towards target at " + target_location);
                         move_towards(target_location);
                     } else {
                         move_towards(getGroupingLocation());
@@ -185,7 +185,7 @@ public class Launcher extends Robot {
                     // No enemies nearby, do normal movement
                     // Move to enemy when ready
                     if (target_location != null) {
-                        rc.setIndicatorString("Heading towards enemy HQ at " + target_location);
+                        rc.setIndicatorString("Heading towards target at " + target_location);
                         move_towards(target_location);
                     } else {
                         move_towards(getGroupingLocation());
