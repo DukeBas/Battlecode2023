@@ -293,6 +293,12 @@ public class Carrier extends Robot {
                     break;
                 }
                 MapLocation hq_loc = decode_hq_location(hq_code);
+
+                // can we sense enemies near that HQ?
+                RobotInfo[] enemies = rc.senseNearbyRobots(hq_loc, 8, enemy);
+                // TODO Use codes from array?
+                if (enemies.length > 0) continue;
+
                 int distance = hq_loc.distanceSquaredTo(rc.getLocation());
                 if (distance < min_dist &&
                         rc.getLocation().directionTo(hq_loc) != enemy_direction &&
