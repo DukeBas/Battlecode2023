@@ -493,6 +493,27 @@ public abstract class Robot {
         return closest_hq;
     }
 
+    public MapLocation get_nearest_enemy_HQ(boolean[] disabledArr) throws GameActionException {
+        MapLocation closest_hq = null;
+        int min_dist = Integer.MAX_VALUE;
+        for (int i = START_INDEX_ENEMY_HQS; i < START_INDEX_ENEMY_HQS + MAX_HQS; i++) {
+
+            if (disabledArr[i - START_INDEX_ENEMY_HQS]) continue;
+
+            int hq_code = rc.readSharedArray(i);
+            if (hq_code == 0) {
+                return closest_hq;
+            }
+            MapLocation hq_loc = decode_hq_location(hq_code);
+            int distance = hq_loc.distanceSquaredTo(rc.getLocation());
+            if (distance < min_dist) {
+                closest_hq = hq_loc;
+                min_dist = distance;
+            }
+        }
+        return closest_hq;
+    }
+
     public void attack() throws GameActionException {
         // Get all possible options to attack
         RobotInfo[] enemies = rc.senseNearbyRobots(rc.getType().actionRadiusSquared, enemy);

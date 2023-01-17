@@ -8,6 +8,9 @@ public class Launcher extends Robot {
     int HQ_id;
     int turnsInCombat = 0;
 
+    boolean[] disabledEnemyHQs = new boolean[]{false, false, false, false};
+    MapLocation guardingEnemyHQLocation = null;
+
 
     public Launcher(RobotController rc) throws GameActionException {
         super(rc);
@@ -24,7 +27,7 @@ public class Launcher extends Robot {
         attack();
 
 
-        MapLocation nearest_known_HQ = get_nearest_enemy_HQ();
+        MapLocation nearest_known_HQ = get_nearest_enemy_HQ(disabledEnemyHQs);
 
         if (nearest_known_HQ != null) {
             target_location = nearest_known_HQ;
@@ -33,6 +36,44 @@ public class Launcher extends Robot {
             int read = rc.readSharedArray(START_INDEX_ATTACK_TARGET);
             if (read != 0) {
                 target_location = decode_hq_location(read);
+            }
+        }
+
+        // Guard enemy HQ if necessary
+        if (guardingEnemyHQLocation != null) {
+            rc.setIndicatorDot(rc.getLocation(), 0, 0, 0);
+            // Stay near that HQ!
+            if (target_location != guardingEnemyHQLocation) {
+                target_location = guardingEnemyHQLocation;
+            }
+        } else {
+            // Should we guard the enemy HQ?
+            MapLocation ownLocation = rc.getLocation();
+            if (target_location != null && rc.canSenseLocation(target_location)) {
+                RobotInfo robot_at_loc = rc.senseRobotAtLocation(target_location);
+                if (robot_at_loc.getType() == RobotType.HEADQUARTERS && robot_at_loc.getTeam() == enemy) {
+
+                    // There's an enemy HQ!! Should we guard it?
+                    if (ownLocation.distanceSquaredTo(target_location) <= 9) {// check to make sure we can see all tiles around it
+                        if (rc.senseNearbyRobots(target_location, 2, friendly).length < 2) {
+                            System.out.println("IMMA GUARD " + target_location + " " + rc.senseNearbyRobots(target_location, 2, friendly).length);
+                            // Not enough guards, we should guard it
+                            guardingEnemyHQLocation = target_location;
+                        } else {
+                            // Enough guards, mark as disabled
+                            // Find ID of HQ
+                            for (int i = START_INDEX_ENEMY_HQS; i < START_INDEX_ENEMY_HQS + MAX_HQS; i++) {
+                                if (target_location.equals(decode_hq_location(rc.readSharedArray(i)))) {
+                                    // Set it as disabled, reset target
+                                    System.out.println(target_location + " IS DISABLED");
+                                    disabledEnemyHQs[i - START_INDEX_ENEMY_HQS] = true;
+                                    target_location = get_nearest_enemy_HQ(disabledEnemyHQs);
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
             }
         }
 
@@ -159,8 +200,8 @@ public class Launcher extends Robot {
     // TODO: account for blocked grouping location..
     MapLocation getGroupingLocation() {
         return new MapLocation(
-                rc.getMapWidth()/2,
-                rc.getMapHeight()/2
+                rc.getMapWidth() / 2,
+                rc.getMapHeight() / 2
         );
 //        return new MapLocation(
 //                built_by.x < rc.getMapWidth() / 2 ? built_by.x + 2 : built_by.x - 2,
