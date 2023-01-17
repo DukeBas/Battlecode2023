@@ -159,8 +159,12 @@ public class Launcher extends Robot {
     // TODO: account for blocked grouping location..
     MapLocation getGroupingLocation() {
         return new MapLocation(
-                built_by.x < rc.getMapWidth() / 2 ? built_by.x + 2 : built_by.x - 2,
-                built_by.y < rc.getMapHeight() / 2 ? built_by.y + 2 : built_by.y - 2
+                rc.getMapWidth()/2,
+                rc.getMapHeight()/2
         );
+//        return new MapLocation(
+//                built_by.x < rc.getMapWidth() / 2 ? built_by.x + 2 : built_by.x - 2,
+//                built_by.y < rc.getMapHeight() / 2 ? built_by.y + 2 : built_by.y - 2
+//        );
     }
 }

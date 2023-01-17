@@ -60,7 +60,7 @@ public class HQ extends Robot {
                 // Set a new attack target every so often
                 // TODO: make more robust; don't just use rotational, use all information already available
                 int round = rc.getRoundNum();
-                if (HQ_id == 0 && round % 150 == 5) {
+                if (HQ_id == 0 && round % 150 == 50) {
                     int index = (round / 150) % friendly_HQs.length;
                     rc.writeSharedArray(
                             START_INDEX_ATTACK_TARGET,
