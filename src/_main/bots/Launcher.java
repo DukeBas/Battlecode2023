@@ -56,7 +56,7 @@ public class Launcher extends Robot {
                     // There's an enemy HQ!! Should we guard it?
                     if (ownLocation.distanceSquaredTo(target_location) <= 9) {// check to make sure we can see all tiles around it
                         if (rc.senseNearbyRobots(target_location, 2, friendly).length < 2) {
-                            System.out.println("IMMA GUARD " + target_location + " " + rc.senseNearbyRobots(target_location, 2, friendly).length);
+//                            System.out.println("IMMA GUARD " + target_location + " " + rc.senseNearbyRobots(target_location, 2, friendly).length);
                             // Not enough guards, we should guard it
                             guardingEnemyHQLocation = target_location;
                         } else {
@@ -65,7 +65,7 @@ public class Launcher extends Robot {
                             for (int i = START_INDEX_ENEMY_HQS; i < START_INDEX_ENEMY_HQS + MAX_HQS; i++) {
                                 if (target_location.equals(decode_hq_location(rc.readSharedArray(i)))) {
                                     // Set it as disabled, reset target
-                                    System.out.println(target_location + " IS DISABLED");
+//                                    System.out.println(target_location + " IS DISABLED");
                                     disabledEnemyHQs[i - START_INDEX_ENEMY_HQS] = true;
                                     target_location = get_nearest_enemy_HQ(disabledEnemyHQs);
                                     break;
@@ -126,7 +126,10 @@ public class Launcher extends Robot {
                 }
             }
 
-            if (num_seen_enemy_combatants > 0) {
+
+            if (num_seen_enemy_combatants > 0) {// There's enemy combatants nearby!
+                turnsInCombat++;
+
                 // Did we just join combat and are we damaged?
                 if (rc.getHealth() <= 10 && turnsInCombat < 3) {
                     rc.setIndicatorString("Got hit hard, taking a step back");
@@ -138,8 +141,6 @@ public class Launcher extends Robot {
                 }
 
 
-                // There's enemy combatants nearby!
-                turnsInCombat++;
                 if (num_attackable_enemy_combatants > 1 || num_close_friendly_combatants < num_seen_enemy_combatants) {
                     // We are outnumbered! Retreat!
                     // TODO: retreat properly instead of from the first enemy of array
@@ -175,14 +176,20 @@ public class Launcher extends Robot {
 
 
             } else {
-                // No enemies nearby, do normal movement
                 turnsInCombat = 0;
-                // Move to enemy when ready
-                if (target_location != null) {
-                    rc.setIndicatorString("Heading towards enemy HQ at " + target_location);
-                    move_towards(target_location);
+                if (enemies.length - num_enemy_hqs > 0) {
+                    // Non combatants nearby, chaaaaseee!
+                    rc.setIndicatorString("I'M SEEING JUICE");
+                    move_towards(enemies[0].getLocation());
                 } else {
-                    move_towards(getGroupingLocation());
+                    // No enemies nearby, do normal movement
+                    // Move to enemy when ready
+                    if (target_location != null) {
+                        rc.setIndicatorString("Heading towards enemy HQ at " + target_location);
+                        move_towards(target_location);
+                    } else {
+                        move_towards(getGroupingLocation());
+                    }
                 }
             }
 
