@@ -24,18 +24,17 @@ public class Launcher extends Robot {
         attack();
 
 
+        MapLocation nearest_known_HQ = get_nearest_enemy_HQ();
 
-            MapLocation nearest_known_HQ = get_nearest_enemy_HQ();
-
-            if (nearest_known_HQ != null) {
-                target_location = nearest_known_HQ;
-            } else {
-                // Is there a global target?
-                int read = rc.readSharedArray(START_INDEX_ATTACK_TARGET);
-                if (read != 0){
-                    target_location = decode_hq_location(read);
-                }
+        if (nearest_known_HQ != null) {
+            target_location = nearest_known_HQ;
+        } else {
+            // Is there a global target?
+            int read = rc.readSharedArray(START_INDEX_ATTACK_TARGET);
+            if (read != 0) {
+                target_location = decode_hq_location(read);
             }
+        }
 
 
         /*
@@ -64,7 +63,7 @@ public class Launcher extends Robot {
             int num_enemy_hqs = 0;
             for (RobotInfo r : enemies) {
                 RobotType type = r.getType();
-                switch (type){
+                switch (type) {
                     case LAUNCHER:
                         num_seen_enemy_combatants++;
                         break;
@@ -77,7 +76,7 @@ public class Launcher extends Robot {
             int num_enemy_HQs_in_attack_range = 0;
             for (RobotInfo r : attackable_enemies) {
                 RobotType type = r.getType();
-                switch (type){
+                switch (type) {
                     case LAUNCHER:
                         num_attackable_enemy_combatants++;
                         break;
@@ -86,7 +85,18 @@ public class Launcher extends Robot {
                 }
             }
 
-            if (attackable_enemies.length - num_enemy_HQs_in_attack_range > 0) {
+            if (num_seen_enemy_combatants > 0) {
+                // Did we just join combat and are we damaged?
+                if (rc.getHealth() <= 10 && turnsInCombat < 3) {
+                    rc.setIndicatorString("Got hit hard, taking a step back");
+                    Direction dir = combatPathing.tryDirection(
+                            rc.getLocation().directionTo(enemies[0].getLocation()).opposite());
+                    if (rc.canMove(dir)) {
+                        rc.move(dir);
+                    }
+                }
+
+
                 // There's enemy combatants nearby!
                 turnsInCombat++;
                 if (num_attackable_enemy_combatants > 1 || num_close_friendly_combatants < num_seen_enemy_combatants) {
@@ -99,7 +109,7 @@ public class Launcher extends Robot {
                         rc.move(dir);
                     }
 
-                } else if (num_seen_friendly_combatants - 2 > num_seen_enemy_combatants) {
+                } else if (num_seen_friendly_combatants - 2 > num_seen_enemy_combatants && turnsInCombat >= 3) {
                     // Move to enemy when ready
                     if (target_location != null) {
                         rc.setIndicatorString(num_seen_enemy_combatants + "Heading towards enemy HQ at " + target_location);
@@ -110,12 +120,15 @@ public class Launcher extends Robot {
                 }
 
                 // If there is one enemy is vision (but not attacking range), move in //TODO: just enough to strike first
-                if (num_attackable_enemy_combatants == 0 && num_seen_enemy_combatants == 1) {
+                if (num_attackable_enemy_combatants == 0 && num_seen_enemy_combatants == 1
+                        && turnsInCombat >= 3
+                        && rc.getHealth() > 6) {
                     Direction dir = combatPathing.tryDirection(
                             rc.getLocation().directionTo(enemies[0].getLocation()));
                     rc.setIndicatorString("trying to attack! Going to " + dir);
                     if (rc.canMove(dir)) {
                         rc.move(dir);
+                        turnsInCombat = 0; // reset
                     }
                 }
 
