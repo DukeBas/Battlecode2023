@@ -62,9 +62,13 @@ public class HQ extends Robot {
                 int round = rc.getRoundNum();
                 if (HQ_id == 0 && round % 150 == 5) {
                     int index = (round / 150) % friendly_HQs.length;
-                    rc.writeSharedArray(
-                            START_INDEX_ATTACK_TARGET,
-                            encode_HQ_location(map_helper.rotationalSymmetricLocation(friendly_HQs[index])));
+                    saveTargetLocation(map_helper.rotationalSymmetricLocation(friendly_HQs[index]));
+                }
+
+                // Set own location as target to get launchers to free us later on
+                RobotInfo[] enemies = rc.senseNearbyRobots(ownLocation, 10, enemy);
+                if (enemies.length > 1 && rc.getRoundNum() > 150) {
+                    saveTargetLocation(ownLocation);
                 }
         }
 
@@ -309,9 +313,9 @@ public class HQ extends Robot {
                 }
             }
 
-            for (int i = START_INDEX_ENEMY_HQS; i < START_INDEX_ENEMY_HQS + MAX_HQS; i++){
+            for (int i = START_INDEX_ENEMY_HQS; i < START_INDEX_ENEMY_HQS + MAX_HQS; i++) {
                 int read = rc.readSharedArray(i);
-                if (read != 0){
+                if (read != 0) {
                     System.out.println("Enemy HQ at " + decode_hq_location(read));
                 }
             }
@@ -717,6 +721,12 @@ public class HQ extends Robot {
             System.out.println("DISPROVEN HORIZONTAL");
             commSaveBool(Constants.Communication_bools.SYM_HORIZONTAL, false);
         }
+    }
+
+    private void saveTargetLocation(MapLocation loc) throws GameActionException {
+        rc.writeSharedArray(
+                START_INDEX_ATTACK_TARGET,
+                encode_HQ_location(loc));
     }
 }
 
