@@ -51,7 +51,7 @@ public class Launcher extends Robot {
             MapLocation ownLocation = rc.getLocation();
             if (target_location != null && rc.canSenseLocation(target_location)) {
                 RobotInfo robot_at_loc = rc.senseRobotAtLocation(target_location);
-                if (robot_at_loc.getType() == RobotType.HEADQUARTERS && robot_at_loc.getTeam() == enemy) {
+                if (robot_at_loc != null && robot_at_loc.getType() == RobotType.HEADQUARTERS && robot_at_loc.getTeam() == enemy) {
 
                     // There's an enemy HQ!! Should we guard it?
                     if (ownLocation.distanceSquaredTo(target_location) <= 9) {// check to make sure we can see all tiles around it

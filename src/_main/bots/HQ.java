@@ -1,9 +1,7 @@
 package _main.bots;
 
+import _main.util.*;
 import battlecode.common.*;
-import _main.util.Constants;
-import _main.util.Map_helper;
-import _main.util.PseudoDFS20;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -22,6 +20,11 @@ public class HQ extends Robot {
     Map_helper map_helper;
     MapLocation[] friendly_HQs;
 
+    // TODO REMOVE
+    int mostBytecodeExtracted = Integer.MIN_VALUE;
+    Pathfinding bfs;
+    /////
+
     ResourceType latest_carrier = ResourceType.NO_RESOURCE;
 
     public HQ(RobotController rc) {
@@ -29,6 +32,7 @@ public class HQ extends Robot {
         ownLocation = rc.getLocation();
         pathfinding = new PseudoDFS20(rc);
         map_helper = new Map_helper(rc);
+        bfs = new BFS20(rc);
     }
 
 //    int mostBytecodeExtracted = -1;
@@ -70,6 +74,20 @@ public class HQ extends Robot {
                 if (enemies.length > 1 && rc.getRoundNum() > 150) {
                     saveTargetLocation(ownLocation);
                 }
+
+                // Uncomment to try out how much bytecode something costs
+                int before = Clock.getBytecodesLeft();
+
+                Direction dir = bfs.getDirection(ownLocation);
+
+                int after = Clock.getBytecodesLeft();
+                int diff = before - after;
+//                System.out.println("USED " + diff + " BYTECODE" + (turnCountStart != turnCount ? ", WENT OVER LIMIT!!!" : ""));
+                if (diff > mostBytecodeExtracted) {
+                    mostBytecodeExtracted = diff;
+                    System.out.println("new bytecode record :(  " + diff);
+                }
+                //////////////////////////
         }
 
         /*

@@ -26,7 +26,6 @@ def direction(dx, dy):
 
 def generate_pathfinding(vision_radius):
     output_file = Path(__file__).parent / f"Pathfinding{vision_radius}.java"
-    #TODO: change to proper directory
     # output_file = Path(__file__).parent.parent / "src" / "camel_case" / "dijkstra" / f"Dijkstra{vision_radius}.java"
     print(f"Generating pathfinding code for vision radius {vision_radius} to '{output_file}'")
 
