@@ -2,11 +2,15 @@ package _main.bots;
 
 import battlecode.common.*;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public class Launcher extends Robot {
 
     MapLocation target_location = null;
     int HQ_id;
     int turnsInCombat = 0;
+    Map<Integer, Integer> damagedAllies = new HashMap<>(); // Really inefficient :(
 
     boolean[] disabledEnemyHQs = new boolean[]{false, false, false, false};
     MapLocation guardingEnemyHQLocation = null;
@@ -79,7 +83,7 @@ public class Launcher extends Robot {
 
 
         /*
-        Movement plan:
+        Movement plan: // TODO update
         - If there are more enemy combatants than friendly ones, retreat // TODO what to do with enemy destabilizers?
         - If it is equal, don't move
         - If we have a lot more units, do normal movement
@@ -87,6 +91,26 @@ public class Launcher extends Robot {
             -> Move towards group location if not in a squad, else move towards goal if we have one
          */
         if (rc.isMovementReady()) {
+            RobotInfo[] friendlies_close = rc.senseNearbyRobots(2, friendly);
+            // Are there damaged allies? If so, combat is likely close!
+            // But don't keep counting the same ones over and over
+            boolean areAlliesDamaged = false;
+            for (RobotInfo r : friendlies_close) {
+                if (r.getHealth() < r.getType().getMaxHealth()) {
+                    int rID = r.getID();
+                    Integer numberOfTimesSeenDamaged = damagedAllies.get(rID);
+                    if (numberOfTimesSeenDamaged == null) {
+                        numberOfTimesSeenDamaged = 0;
+                    }
+                    if (numberOfTimesSeenDamaged < 4) {
+                        areAlliesDamaged = true;
+                        damagedAllies.put(rID, numberOfTimesSeenDamaged + 1);
+                        break;
+                    }
+                }
+            }
+
+
             RobotInfo[] friendlies = rc.senseNearbyRobots(-1, friendly);
             int num_seen_friendly_combatants = 1; // we ourselves are one
             for (RobotInfo r : friendlies) {
@@ -127,11 +151,11 @@ public class Launcher extends Robot {
             }
 
 
-            if (num_seen_enemy_combatants > 0) {// There's enemy combatants nearby!
+            if (num_seen_enemy_combatants > 0 || areAlliesDamaged) {// There's enemy combatants nearby!
                 turnsInCombat++;
 
                 // Did we just join combat and are we damaged?
-                if (rc.getHealth() <= 10 && turnsInCombat < 3) {
+                if (num_seen_enemy_combatants > 0 && rc.getHealth() <= 10 && turnsInCombat < 5) {
                     rc.setIndicatorString("Got hit hard, taking a step back");
                     Direction dir = combatPathing.tryDirection(
                             rc.getLocation().directionTo(enemies[0].getLocation()).opposite());
