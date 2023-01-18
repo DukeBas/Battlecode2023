@@ -185,7 +185,7 @@ public class Launcher extends Robot {
                     // No enemies nearby, do normal movement
                     // Move to enemy when ready
                     if (target_location != null) {
-                        rc.setIndicatorString("Heading towards target at " + target_location);
+                        rc.setIndicatorString("No enemies, heading towards target at " + target_location);
                         move_towards(target_location);
                     } else {
                         move_towards(getGroupingLocation());
