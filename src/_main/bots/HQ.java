@@ -32,6 +32,7 @@ public class HQ extends Robot {
         ownLocation = rc.getLocation();
         pathfinding = new PseudoDFS20(rc);
         map_helper = new Map_helper(rc);
+        bfs = new BFS20(rc);
     }
 
 //    int mostBytecodeExtracted = -1;
@@ -72,6 +73,22 @@ public class HQ extends Robot {
                 RobotInfo[] enemies = rc.senseNearbyRobots(ownLocation, 10, enemy);
                 if (enemies.length > 1 && rc.getRoundNum() > 150) {
                     saveTargetLocation(ownLocation);
+                }
+
+                if (HQ_id == 0) {
+                    // Uncomment to try out how much bytecode something costs
+                    int before = Clock.getBytecodesLeft();
+
+                    MapLocation test = new MapLocation(1, 1);
+                    bfs.getDirection(test);
+
+                    int after = Clock.getBytecodesLeft();
+                    int diff = before - after;
+//                System.out.println("USED " + diff + " BYTECODE" + (turnCountStart != turnCount ? ", WENT OVER LIMIT!!!" : ""));
+                    if (diff > mostBytecodeExtracted) {
+                        mostBytecodeExtracted = diff;
+                        System.out.println("new bytecode record :(  " + diff);
+                    }
                 }
         }
 
